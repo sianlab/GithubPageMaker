@@ -1,0 +1,36 @@
+react :
+  name: react
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+spring:
+  name: spring
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+iOS:
+  name: iOS
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+jekyll :
+  name: jekyll
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+minimal-mistakes:
+  name: minimal-mistakes
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+SSL:
+  name: SSL
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+tensorflow:
+  name: tensorflow
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+SSH:
+  name: SSH
+  description: False
+  cover: assets/built/images/background-frontend.jpg
+python :
+  name: python
+  description: False
+  cover: assets/built/images/background-frontend.jpg
