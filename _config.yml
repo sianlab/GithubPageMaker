@@ -5,9 +5,9 @@ markdown: kramdown
 
 # MyData
 owner:
-  name:           Sian
+  name:           Siansoft
   avatar:         photo.jpg
-  bio:            "Sian Lab"
+  bio:            "Siansoft"
   email:          jjh@siansoft.co.kr
   # Social networking links used in footer. Update and remove as you like.
   twitter:
@@ -45,7 +45,7 @@ url: https://sianlab.github.io
 baseurl: /
 
 # Website info
-title: Sian Lab
+title: Siansoft
 # 자신의 blog title.
 
 description: 기술 블로그
@@ -83,7 +83,7 @@ facebook:
 
 # Disqus
 disqus: True
-disqus_shortname: sianlab
+disqus_shortname: Siansoft
 # disqus는 온라인 댓글 시스템. 댓글 기능을 사용하기 위해
 # disqus를 이용할 것인지 여부와 만약 사용하면
 # disqus shortname을 입력 ( disqus username이 아님 )
