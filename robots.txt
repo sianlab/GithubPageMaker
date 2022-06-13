@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sianlab.github.io/sitemap.xml
