@@ -186,6 +186,69 @@ into the {body} of the default.hbs template -->
 <script>
     window.store = {
     
+    "react-porting-by-electron": {
+        "title": "[ElectronJS] React 앱을 데스크톱 응용프로그램으로 변환(포팅)하기",
+            "author": "sian",
+            "category": "",
+            "content": "서론React 기반의 웹 사이트를 데스크톱 응용 프로그램으로 포팅하는 방법이 있을까 싶어서 찾아보던 중 알게 된 ElectronJS.ElectronJS를 이용하면 굉장히 간단한 설정 몇번으로 React 기반(정확하게는 JS, HTML, CSS 기반)의 데스크톱 응용프로그램을 만들거나 포팅을 할 수 있다.이 포스트는 React -&gt; Windowns 응용 프로그램으로 포팅하는 아주 기본적인 설명을 작성한 포스트이다.환경  Windows 11  Visual Studio Code 1.63.2  npx 9.5.1  yarn 1.22.19  React 18.2.0, react-scripts 5.0.1 (create-react-app)  electron 25.0.0  electron-builder 23.6.01.\tReact 앱 준비본 포스팅을 위해 create-react-app을 통해 기본 react 앱을 생성하기로 하였다.윈도우 커맨드 창을 열어서 앱을 생성하기 원하는 위치로 이동한 뒤 아래 명령어를 입력한다.npx create-react-app my-electron-app프로젝트가 생성되면 해당 프로젝트 경로에서 아래 명령어를 통해 react 앱을 실행시킨다.yarn startcreate-react-app 기본포트인 3000번 포트로 접속하여 react 앱이 잘 올라갔는 지 확인한다.2.\tElectronJS 준비 및 개발환경에서 구동해보기react 앱이 잘 구동되는 모습을 확인했다면 이제 electron 관련된 모듈들을 프로젝트에 추가한다.아래 명령어를 통해 프로젝트에 필요한 electron 관련 모듈을 추가하자.(이미지에는 -d 로 되어 있는데 -D 로 대문자로 입력해주자.)yarn add -D electron electron-builder프로젝트 폴더로 이동하여 package.json 파일을 열어서 두 모듈이 잘 추가가 되었나 확인한다.모듈이 추가된 모습을 확인했다면 아래 코드를 package.json 파일에 입력한다.\"scripts\": {  ...,  // 기존 스크립트들  \"electron-start\": \"set ELECTRON_START_URL=http://localhost:3000 &amp;&amp; electron .\",},\"main\": \"public/Main.js\",\"homepage\": \"./\",위에 작성한 main 속성에 해당하는 js 파일을 참조하여 electron을 실행하기 때문에 프로젝트의 public 경로 안에 Main.js 파일을 생성한 뒤 아래 코드를 붙여넣는다.const {app, BrowserWindow} = require('electron');const path = require('path');const url = require('url');function createWindow() {    /*    * 넓이 1920에 높이 1080의 FHD 풀스크린 앱을 실행시킵니다.    * */    const win = new BrowserWindow({        width:1920,        height:1080    });    /*    * ELECTRON_START_URL을 직접 제공할경우 해당 URL을 로드합니다.    * 만일 URL을 따로 지정하지 않을경우 (프로덕션빌드) React 앱이    * 빌드되는 build 폴더의 index.html 파일을 로드합니다.    * */    const startUrl = process.env.ELECTRON_START_URL || url.format({        pathname: path.join(__dirname, '/../build/index.html'),        protocol: 'file:',        slashes: true    });    /*    * startUrl에 배정되는 url을 맨 위에서 생성한 BrowserWindow에서 실행시킵니다.    * */    win.loadURL(startUrl);}app.on('ready', createWindow);그 다음 react 앱이 실행되어 있는 상태로 터미널을 한개 더 실행하여 electron-start 명령어를 입력한다.yarn electron-start   # 다른 터미널에서 yarn start로 react 앱이 구동되고 있어야 함!electron 구동이 완료되면 아래와 같이 데스크톱 응용 프로그램으로 실행되는 모습을 확인할 수 있다.이미 구동되고 있는 3000포트의 react 앱을 불러오는 것이기 때문에 코드 수정 등이 바로바로 반영되는 모습을 확인할 수 있다.예시로, 아래와 같이 메인 화면에 문구를 추가하고 저장하면 응용 프로그램이 바로 수정되는 모습을 볼 수 있다.3.\t응용 프로그램으로 빌드하기2번에서 진행한 내용은 개발단계로써, 3000포트에 띄운 react 앱을 응용 프로그램이 호출하는 것 뿐이다.하지만 ElectronJS를 통해 빌드를 하면 위와 같이 react 앱이 미리 구동되어 있을 필요가 없이 자체적으로 react 앱을 실행시켜서정말 하나의 데스크톱 응용 프로그램처럼 동작하게 된다.이제 빌드를 위해 다시 package.json 파일을 열어서 scripts 항목에 명령어 추가 및 build 항목을 추가하자.\"scripts\": {  ...,  // 기존 스크립트들  \"electron-pack\": \"yarn build &amp;&amp; electron-builder\"},...,\"build\": {  \"productName\": \"my-electron-app\",  \"asar\": true,  \"appId\": \"com.app.electron\",  \"extends\": null,  \"files\": [    \"*.js\",    \"public\",    \"build\",    \"node_modules\"  ]},파일 저장 후 아래 명령어를 입력하여 빌드를 진행해보자.yarn electron-pack빌드가 정상적으로 진행됬다면 아래와 같은 문구가 나온다.이제 프로젝트 경로에 진입해서 dist 폴더를 열어보면 아래와 같이 exe 파일이 빌드되어 있는 모습을 볼 수 있다.해당 exe 파일을 실행해주면 react 앱을 데스크톱에 설치해준다.설치가 완료되면 데스크톱 응용 프로그램으로 실행되는 모습을 확인할 수 있다.기존 3000포트에 react 앱을 구동시켜놓았다면 react 앱을 종료한 뒤 프로그램을 실행해보자.react 앱이 돌아가고 있지 않아도 프로그램이 정상 작동하는 모습을 확인할 수 있다.응용 프로그램을 설치한 것이기 때문에 프로그램 추가/제거에서도 해당 프로그램을 확인할 수 있다.진행 중 마주친 에러Application entry file \"public\\Main.js\" in the \"C:\\develop\\Nodejs workplace\\my-electron-app\\dist\\win-unpacked\\resources\\app.asar\" does not exist. Seems like a wrong configuration.포스트 작성 진행 중 위와 같은 에러를 마주친 적이 있는데 처음 진행시에는 package.json 파일 안의 build 항목에“extends”: null 속성이 없는 상태로 진행을 하였다. 그랬더니 위와 같은 에러가 발생했다.package.json 파일 안에 아래와 같이 추가해주자.\"build\": {  ...,  \"extends\": null,},마치며급하게 알아보느라 다른 분들의 포스트를 기반으로 진행하여 build 항목 안의 속성들이 무슨 의미를 가지고 있는지 등등을알아보지 않은 채로 일단 포스트를 작성하게 되었다. 추후 시간이 남을 때 더 자세히 알아봐야겠다.참조 사이트https://blog.codefactory.ai/electron/create-desktop-app-with-react-and-electron/1-project-setting/https://velog.io/@threejoon/React-Electron-%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0",
+        "url": "/react_porting_by_electron"
+    }
+    ,
+    
+    "unity-6": {
+        "title": "Unity AR App 개발 - Nreal glasses 360도 영상 App 개발 ",
+            "author": "sian",
+            "category": "",
+            "content": "서론Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.여섯번째로 이전 포스트에 이어서 Nreal glasses 360도 영상 App 개발에 대해 알아보자.환경  Windows 11  Android 기반 스마트폰  Nreal Air1.   360도 영상 설정1.1\tProject 탭에서 Assets 내 material 폴더 생성1.2\tMaterial 폴더에 360도 영상 파일을 복사1.3\tMaterial 폴더 우클릭 후 Create &gt; Render Texture 클릭1.4\t생성된 Render Texture 클릭 후 Inspector 탭에서 Size 값을 1920 x 1080 으로 설정1.5\tMaterial 폴더 우클릭 후 Create &gt; material 클릭1.6\t생성된 material 클릭 후 Inspector 탭1.6.1\tShader 값을 Skybox/Panoramic 으로 설정1.6.2\tSpherical 항목에 작성한 Render Texture 객체를 드래그 하여 설정1.7\tWindow &gt; Rendering &gt; Lighting 클릭1.8\tLighting 창에서 Environment 클릭 후 Skybox Material 항목에 작성한 material 객체를 드래그 하여 설정1.9\tHierarchy 탭에서 + 버튼 클릭 후 Video &gt; Video Player 클릭1.10\t생성된 Video Player 클릭 후 Inspector 탭1.10.1\tVideo Clip 항목에 360도 영상 설정1.10.2\tTarget Texture 항목에 작성한 Render Texture 설정1.10.3\t반복 재생은 Loop 항목 체크2.   Nreal glass 설정2.1\tHierarchy 탭에서 DemoScenesMenu 삭제2.2\tHierarchy 탭에서 HelloMR &gt; NRCameraRig &gt; LeftCamera 클릭2.3\tInspector 탭에서 Camera &gt; Clear Flags 값을 Skybox 로 설정2.4 App 빌드 및 실행",
+        "url": "/unity_6"
+    }
+    ,
+    
+    "unity-5": {
+        "title": "Unity AR App 개발 - Nreal glasses App 개발 ",
+            "author": "sian",
+            "category": "",
+            "content": "서론Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.다섯번째로 AR 기기 중 하나인 Nreal glasses 용 AR App 개발에 대해 알아보자.환경  Windows 11  Android 기반 스마트폰  Nreal Air1.   프로젝트 생성1.1\t개발자사이트(https://developer.nreal.ai/download) 접속하여 Nreal SDK 다운로드1.2\t이전 포스트 중 ‘프로젝트 생성’ 부분 참고하여 생성※ 필자의 개발환경 기준으로 최신 유니티 에디터 버전을 사용 시 빌드 오류가 발생되어 2020.03 에디터 버전으로 다운그레이드 후 정상 실행이 되어 이 버전 기준으로 작성함.2.   프로젝트 설정2.1\tFile &gt; Build Settings &gt; Player Settings     2.1.1\tOther Settings         2.1.1.1\tConfiguration &gt; Api compatibility Level 값을 .NET 4.x 로 설정        2.1.1.2\tWrite Permission 값을 External로 설정2.2\tResolution and Presentation     2.2.1\tDefault Orientation 값을 Portrait 로 설정2.3\tQuality &gt; V Sync Count 값을 Don’t Sync 로 설정3.  Nreal SDK 설치3.1\tAssets &gt; Import Package &gt; Custom Package 클릭3.2\t다운받은 Nreal SDK 파일 선택3.3\tImport Unity Package 창에서 Import 버튼 클릭4.\tNreal Demo App 빌드 및 실행4.1\tProject 탭에서 Assets &gt; NRSDK &gt; Demos &gt; HelloMR.unity 파일 더블클릭4.2\tFile &gt; Build Settings 에서 Add Open Scene 클릭 후 Build 실행4.3\t사용할 스마트폰에 Nebula 앱 설치4.4\tNreal glass 를 스마트폰에 연결4.5\t스마트폰에서 Nebula 앱 실행4.6\tNebula 앱에서 AR 스페이스 버튼 클릭4.7\tNubula 가상 화면에서 우측으로 이동하여 설치한 Unity app 실행",
+        "url": "/unity_5"
+    }
+    ,
+    
+    "unity-4": {
+        "title": "Unity AR App 개발 - Text box 구현 ",
+            "author": "sian",
+            "category": "",
+            "content": "서론Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.네번째로 이전 포스트에서 설명했던 AR App 에서 사용할 Text box 구현 방법에 대해 알아보자.1.   Canvas 생성1.1\tHierarchy 탭에서 + 버튼 클릭1.2\tUI &gt; Canvas 클릭1.3\tRender Mode 값을 World Space 로 설정1.4\tCanvas Scaler 항목 우측 버튼 클릭 후 Remove Component 클릭1.5\tCanvas 크기 설정1.5.1\tPos X, Y, Z 값을 0으로 설정1.5.2\tWidth , Height 값을 1로 설정2.   Text 생성2.1\tHierarchy 탭에서 Canvas 우클릭2.2\tUI &gt; Text 클릭2.3\tText 영역 설정2.3.1\tWidth, Height 값 설정2.3.2\tScale 값을 0.01로 설정2.4\tText 설정2.4.1\t표시할 Text 값 설정2.4.2\t글꼴 설정2.4.3\t정렬 설정2.4.4\t글자색 설정2.5\tHierarchy 탭의 Canvas 항목을 드래그 하여 Project 탭으로 이동2.6\tHierarchy 탭의 Canvas 항목 삭제",
+        "url": "/unity_4"
+    }
+    ,
+    
+    "unity-3": {
+        "title": "Unity AR App 개발 - Multiple Image Tracking App 개발 ",
+            "author": "sian",
+            "category": "",
+            "content": "서론Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.세번째로 여러 이미지를 인식하여 각각 다른 이미지를 띄우는 Multiple Image Tracking App 개발에 대해 알아보자.1.   AR 모듈 설치1.1\t메뉴 탭의 Window &gt; Package Manager 클릭1.2\tPackages: In Project 항목 클릭하여 Unity registry 로 변경1.3\t우측 상단 검색창에 ar 입력1.4\t검색 결과 목록에서 AR Foundation 선택1.5\t우측 하단 Install 클릭1.6\t설치 완료 후 Package Manager 팝업 닫기1.7\tHierarchy 탭에서 Main Camera 항목 삭제1.8\t+ 버튼 클릭하여 XR &gt; AR Session / AR Session Origin 각각 추가한다2.\tImage Library 생성2.1\tProject 탭에서 Assets 항목 우클릭2.2\tCreate &gt; folder 클릭하여 material 폴더 생성2.3\tMaterial 폴더 우클릭 하여 create &gt; XR &gt; reference Image Object 생성2.4\tAR 앱으로 촬영할 대상 이미지 파일을 드래그하여 material 폴더로 복사2.5\t생성한 Image Object 선택 후 Inspector 탭에서 Add Image 버튼 클릭2.6\tTexture 2D 항목에 대상 이미지 파일을 드래그 하여 설정2.7\tInspector 탭에서 Specify Size 체크 후 Physical Size 값 설정 (인식할 이미지 크기 설정)※ X 값 또는 Y 값 입력 시 다른 값은 비율에 맞게 자동 입력2.8\t인식할 이미지 개수만큼 2.4 ~ 2.7 단계 반복3.\tImage Prefab 생성3.1\tAR 앱으로 촬영할 대상 위에 표시할 이미지 파일을 material 폴더로 복사3.2\tHierarchy 탭에서 + 버튼을 클릭하여 3D Object &gt; Quad 선택3.3\t생성한 Quad 항목을 선택3.4\tInspector 탭의 하단 빈곳으로 복사한 이미지 파일을 드래그하여 이동3.5\tHierarchy 탭에서 생성한 Quad 항목을 드래그하여 Project 탭의 material 폴더로 이동3.6\tMaterial 폴더에 Quad 항목이 생성된 것을 확인 후 Hierarchy 탭에서 Quad 항목 삭제3.7\t표시할 이미지 개수만큼 반복4.\tAR 설정4.1\tHierarchy 탭에서 AR Session Origin 항목 클릭4.2\tInspector 탭에서 Add Component 클릭4.3\tAR Tracked Image Manager 추가4.4\tAR Tracked Image Manager 설정4.4.1\tSerialized Library에 2.2에서 생성한 Image Library를 드래그 하여 이동4.4.2\tMax Number Of Moving Images 의 값을 설정 (인식할 이미지 개수)4.4.3\tTracked Image Prefab에 None 으로 설정5.   Multiple Image Tracking 스크립트 추가5.1\tHierarchy 탭에서 AR Session Origin 항목 클릭5.2\tInspector 탭에서 Add Component 클릭5.3\tSearch 에서 New script 클릭5.4\tName 부분에 생성할 스크립트 명 작성5.5\tCreate and Add 클릭5.6\t생성된 스크립트 항목의 우측 아이콘 클릭5.7\t메뉴에서 Edit Script 클릭6.  Multiple Image Tracking 스크립트 코드 작성6.1\t라이브러리 및 전역변수 선언6.2\tAwake 함수 선언6.3\t이미지 감지 이벤트 처리 함수 선언7.  Multiple script prefab 설정7.1\tHierarchy 탭에서 AR Session Origin 항목 클릭7.2\t추가한 스크립트 내 Prefabs 에서 + 버튼을 눌러 목록 증가7.3\tPrefabs 목록에 표시할 이미지 Prefab 등록8.  App 빌드",
+        "url": "/unity_3"
+    }
+    ,
+    
+    "unity-2": {
+        "title": "Unity AR App 개발 - Image Tracking App 개발 ",
+            "author": "sian",
+            "category": "",
+            "content": "서론Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.두번째로 특정 이미지 위에 다른 이미지를 띄우는 Image Tracking App 개발에 대해 알아보자.1.\tAR 모듈 설치1.1\t메뉴 탭의 Window &gt; Package Manager 클릭1.2\tPackages: In Project 항목 클릭하여 Unity registry 로 변경1.3\t우측 상단 검색창에 ar 입력1.4\t검색 결과 목록에서 AR Foundation 선택1.5\t우측 하단 Install 클릭1.6\t설치 완료 후 Package Manager 팝업 닫기1.7\tHierarchy 탭에서 Main Camera 항목 삭제1.8\t+ 버튼 클릭하여 XR &gt; AR Session / AR Session Origin 각각 추가한다2.\tImage Library 생성2.1\tProject 탭에서 Assets 항목 우클릭2.2\tCreate &gt; folder 클릭하여 material 폴더 생성2.3\tMaterial 폴더 우클릭 하여 create &gt; XR &gt; reference Image Object 생성2.4\tAR 앱으로 촬영할 대상 이미지 파일을 드래그하여 material 폴더로 복사2.5\t생성한 Image Object 선택 후 Inspector 탭에서 Add Image 버튼 클릭2.6\tTexture 2D 항목에 대상 이미지 파일을 드래그 하여 설정2.7\tInspector 탭에서 Specify Size 체크 후 Physical Size 값 설정 (인식할 이미지 크기 설정)※ X 값 또는 Y 값 입력 시 다른 값은 비율에 맞게 자동 입력3.\tImage Prefab 생성3.1\tAR 앱으로 촬영할 대상 위에 표시할 이미지 파일을 material 폴더로 복사3.2\tHierarchy 탭에서 + 버튼을 클릭하여 3D Object &gt; Quad 선택3.3\t생성한 Quad 항목을 선택3.4\tInspector 탭의 하단 빈곳으로 복사한 이미지 파일을 드래그하여 이동3.5\tHierarchy 탭에서 생성한 Quad 항목을 드래그하여 Project 탭의 material 폴더로 이동3.6\tMaterial 폴더에 Quad 항목이 생성된 것을 확인 후 Hierarchy 탭에서 Quad 항목 삭제4.\tAR 설정4.1\tHierarchy 탭에서 AR Session Origin 항목 클릭4.2\tInspector 탭에서 Add Component 클릭4.3\tAR Tracked Image Manager 추가4.4\tAR Tracked Image Manager 설정4.4.1\tSerialized Library에 2.2에서 생성한 Image Library를 드래그 하여 이동4.4.2\tMax Number Of Moving Images 의 값을 설정 (인식할 이미지 개수)4.4.3\tTracked Image Prefab에 2.3에서 생성한 Image Prefab을 드래그 하여 이동5.\tApp 빌드",
+        "url": "/unity_2"
+    }
+    ,
+    
+    "unity-1": {
+        "title": "Unity AR App 개발 - Unity 설치 및 프로젝트 설정 ",
+            "author": "sian",
+            "category": "",
+            "content": "서론Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.첫번째로 Unity 설치 및 프로젝트 설정에 대해 알아보자.환경  Windows 11  Android 기반 스마트폰1.\tUnity Hub 설치  유니티 사이트(https://unity.com/kr/download) 접속하여 다운로드2.\tUnity Editor 설치2.1\tUnity Hub 실행2.2\t좌측 메뉴 Installs 메뉴 클릭2.3\t우측 상단 Install Editor 클릭2.4\t설치할 에디터 버전 항목의 Install 클릭2.5 이전 버전 에디터 설치하려면 유니티 아카이브 사이트(https://unity.com/releases/editor/archive) 접속하여 해당 버전 항목의 Unity Hub 버튼 클릭2.6\t설치항목 선택 (안드로이드 앱 기준)2.6.1\t안드로이드 관련 항목(SDK/NDK 등) 체크2.6.2\tVisual Studio 항목 체크 후 Install 클릭3.\t프로젝트 생성3.1\tUnity Hub 실행3.2\t좌측 메뉴 Projects 클릭3.3\t우측 상단 New project 클릭3.4\t중앙 상단 사용할 에디터 버전 선택3.5\t프로젝트 템플릿은 3D Core 선택3.6\t우측 하단 Project name 설정3.7\tCreate project 클릭4.\t프로젝트 설정4.1\t플랫폼 변경4.1.1\tFile &gt; Build Settings 클릭4.1.2\tPlatform 항목에서 안드로이드 선택 후 Switch Platform 클릭4.2\t빌드 설정4.2.1\tBuild Settings 창 하단 Player Settings 클릭4.2.2\tCompany Name, Product Name 설정 (빌드 시 해당 설정값으로 패키지명 자동설정 됨)4.2.3\tOther Settings 클릭4.2.4\tAuto Graphics API 체크해제4.2.5\tGraphics APIs 항목에서 Vulkan 클릭 후 아래 – 버튼 클릭하여 제외4.2.6\tMinimum API Level 설정 (24 ~ 26 버전 설정 권장)4.2.7\tTarget API Level 설정 (기본값으로 사용 권장, 빌드 실패 시 유니티 에디터 버전에 맞는 안드로이드 버전으로 설정)4.2.8\tScripting Backend 값을 IL2CPP 로 설정4.2.9 Target Architectures 에서 ARM64 체크 (갤럭시 S20 이상에서 구동 시 필수)4.2.10\tProject Settings &gt; XR Plug-in Management 클릭4.2.11\tXR Install 클릭4.2.12\tARCore 체크5.\tApp 빌드5.1\tFile &gt; Build Settings 클릭5.2\tAdd Open Scenes 클릭5.3\t빌드할 Scene 항목 체크5.4\t연결된 기기가 있을 시, Run Device 에서 연결한 기기 선택5.5\tBuild And Run 실행5.6\t생성할 APK 파일명 설정 후 저장5.7\t빌드 완료 후 해당 프로젝트 폴더에 APK 파일 생성5.8\tRun Device 에서 연결한 기기 선택 시, 기기에서 자동 실행됨",
+        "url": "/unity_1"
+    }
+    ,
+    
     "ssl-letsencrypt-ubuntu22": {
         "title": "Letsencrypt + Nginx SSL인증서(HTTPS) 적용 (Ubuntu22.04 개정판)",
             "author": "sian",
@@ -727,7 +790,7 @@ $(function() {
         <!-- The footer at the very bottom of the screen -->
         <footer class="site-footer outer">
             <div class="site-footer-content inner">
-                <section class="copyright"><a href="http://localhost:4000/">Siansoft</a> &copy; 2022</section>
+                <section class="copyright"><a href="http://localhost:4000/">Siansoft</a> &copy; 2023</section>
                 <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> &
                     <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a> using
                     <a href="https://github.com/jekyllt/jasper2" target="_blank" rel="noopener">Jasper2</a></section>

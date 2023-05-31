@@ -254,24 +254,24 @@ into the {body} of the default.hbs template -->
 
 <p>기본 구조는 다음과 같습니다.</p>
 
-<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">runApp</span><span class="o">(</span><span class="n">MyApp</span><span class="o">());</span>
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">void</span> <span class="nf">main</span><span class="p">()</span> <span class="o">=</span><span class="p">&gt;</span> <span class="n">runApp</span><span class="p">(</span><span class="n">MyApp</span><span class="p">());</span>
 
-  <span class="kd">class</span> <span class="nc">MyApp</span> <span class="kd">extends</span> <span class="n">StatelessWidget</span> <span class="o">{</span>
+  <span class="kd">class</span> <span class="nc">MyApp</span> <span class="kd">extends</span> <span class="n">StatelessWidget</span> <span class="p">{</span>
     <span class="nd">@override</span>
-    <span class="n">Widget</span> <span class="n">build</span><span class="o">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="n">MaterialApp</span><span class="o">(</span>
-        <span class="nl">title:</span> <span class="s">'Welcome to Flutter'</span><span class="o">,</span>
-        <span class="nl">home:</span> <span class="n">Scaffold</span><span class="o">(</span>
-          <span class="nl">appBar:</span> <span class="n">AppBar</span><span class="o">(</span>
-            <span class="nl">title:</span> <span class="n">Text</span><span class="o">(</span><span class="s">'Welcome to Flutter'</span><span class="o">),</span>
-          <span class="o">),</span>
-          <span class="nl">body:</span> <span class="n">Center</span><span class="o">(</span>
-            <span class="nl">child:</span> <span class="n">Text</span><span class="o">(</span><span class="s">'Hello World'</span><span class="o">),</span>
-          <span class="o">),</span>
-        <span class="o">),</span>
-      <span class="o">);</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+    <span class="n">Widget</span> <span class="n">build</span><span class="p">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">MaterialApp</span><span class="p">(</span>
+        <span class="nl">title:</span> <span class="s">'Welcome to Flutter'</span><span class="p">,</span>
+        <span class="nl">home:</span> <span class="n">Scaffold</span><span class="p">(</span>
+          <span class="nl">appBar:</span> <span class="n">AppBar</span><span class="p">(</span>
+            <span class="nl">title:</span> <span class="n">Text</span><span class="p">(</span><span class="s">'Welcome to Flutter'</span><span class="p">),</span>
+          <span class="p">),</span>
+          <span class="nl">body:</span> <span class="n">Center</span><span class="p">(</span>
+            <span class="nl">child:</span> <span class="n">Text</span><span class="p">(</span><span class="s">'Hello World'</span><span class="p">),</span>
+          <span class="p">),</span>
+        <span class="p">),</span>
+      <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
 </code></pre></div></div>
 <p>앱이 실행 될 때 MyApp 클래스를 실행하여 build를 override하여 출력.</p>
 
@@ -281,64 +281,64 @@ into the {body} of the default.hbs template -->
 
 <p>예를 들면..</p>
 
-<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">runApp</span><span class="o">(</span><span class="n">MyApp</span><span class="o">());</span>
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">void</span> <span class="nf">main</span><span class="p">()</span> <span class="o">=</span><span class="p">&gt;</span> <span class="n">runApp</span><span class="p">(</span><span class="n">MyApp</span><span class="p">());</span>
 
-  <span class="kd">class</span> <span class="nc">MyApp</span> <span class="kd">extends</span> <span class="n">StatelessWidget</span> <span class="o">{</span>
+  <span class="kd">class</span> <span class="nc">MyApp</span> <span class="kd">extends</span> <span class="n">StatelessWidget</span> <span class="p">{</span>
     <span class="nd">@override</span>
-    <span class="n">Widget</span> <span class="n">build</span><span class="o">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="n">MaterialApp</span><span class="o">(</span>
-        <span class="nl">title:</span> <span class="s">'Welcome to Flutter'</span><span class="o">,</span>
-        <span class="nl">home:</span> <span class="n">Scaffold</span><span class="o">(</span>
-          <span class="nl">appBar:</span> <span class="n">AppBar</span><span class="o">(</span>
-            <span class="nl">title:</span> <span class="n">Text</span><span class="o">(</span><span class="s">'Welcome to Flutter'</span><span class="o">),</span>
-          <span class="o">),</span>
-          <span class="nl">body:</span> <span class="k">new</span> <span class="n">Column</span><span class="o">(</span>
-              <span class="nl">children:</span> <span class="o">&lt;</span><span class="n">Widget</span><span class="o">&gt;[</span>
-                <span class="k">new</span> <span class="n">Text</span><span class="o">(</span><span class="s">"1번"</span><span class="o">),</span>
-                <span class="k">new</span> <span class="n">Text</span><span class="o">(</span><span class="s">"2번"</span><span class="o">),</span>
-                <span class="k">new</span> <span class="n">Text</span><span class="o">(</span><span class="s">"3번"</span><span class="o">),</span>
-              <span class="o">],</span>
-            <span class="o">),</span>
-          <span class="o">),</span>
-        <span class="o">),</span>
-      <span class="o">);</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+    <span class="n">Widget</span> <span class="n">build</span><span class="p">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">MaterialApp</span><span class="p">(</span>
+        <span class="nl">title:</span> <span class="s">'Welcome to Flutter'</span><span class="p">,</span>
+        <span class="nl">home:</span> <span class="n">Scaffold</span><span class="p">(</span>
+          <span class="nl">appBar:</span> <span class="n">AppBar</span><span class="p">(</span>
+            <span class="nl">title:</span> <span class="n">Text</span><span class="p">(</span><span class="s">'Welcome to Flutter'</span><span class="p">),</span>
+          <span class="p">),</span>
+          <span class="nl">body:</span> <span class="k">new</span> <span class="n">Column</span><span class="p">(</span>
+              <span class="nl">children:</span> <span class="p">&lt;</span><span class="n">Widget</span><span class="p">&gt;[</span>
+                <span class="k">new</span> <span class="n">Text</span><span class="p">(</span><span class="s">"1번"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="n">Text</span><span class="p">(</span><span class="s">"2번"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="n">Text</span><span class="p">(</span><span class="s">"3번"</span><span class="p">),</span>
+              <span class="p">],</span>
+            <span class="p">),</span>
+          <span class="p">),</span>
+        <span class="p">),</span>
+      <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
 </code></pre></div></div>
 
 <p>이런식으로 작성 가능합니다!</p>
 
 <p>혹은, 아예 클래스를 생성하여 넣거나, 색상을 지정하는것도 가능합니다.</p>
 
-<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">runApp</span><span class="o">(</span><span class="n">MyApp</span><span class="o">());</span>
-  <span class="kd">class</span> <span class="nc">MyApp</span> <span class="kd">extends</span> <span class="n">StatelessWidget</span> <span class="o">{</span>
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">void</span> <span class="nf">main</span><span class="p">()</span> <span class="o">=</span><span class="p">&gt;</span> <span class="n">runApp</span><span class="p">(</span><span class="n">MyApp</span><span class="p">());</span>
+  <span class="kd">class</span> <span class="nc">MyApp</span> <span class="kd">extends</span> <span class="n">StatelessWidget</span> <span class="p">{</span>
     <span class="nd">@override</span>
-    <span class="n">Widget</span> <span class="n">build</span><span class="o">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="n">MaterialApp</span><span class="o">(</span>
-        <span class="nl">home:</span> <span class="n">BodyContainer</span><span class="o">(),</span>
-        <span class="nl">theme:</span> <span class="k">new</span> <span class="n">ThemeData</span><span class="o">(</span>
+    <span class="n">Widget</span> <span class="n">build</span><span class="p">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">MaterialApp</span><span class="p">(</span>
+        <span class="nl">home:</span> <span class="n">BodyContainer</span><span class="p">(),</span>
+        <span class="nl">theme:</span> <span class="k">new</span> <span class="n">ThemeData</span><span class="p">(</span>
           <span class="nl">primarySwatch:</span> <span class="n">Colors</span><span class="o">.</span><span class="na">blueGrey</span>
-        <span class="o">),</span>
-      <span class="o">);</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+        <span class="p">),</span>
+      <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
 
-  <span class="kd">class</span> <span class="nc">BodyContainer</span> <span class="kd">extends</span> <span class="n">StatefulWidget</span> <span class="o">{</span>
+  <span class="kd">class</span> <span class="nc">BodyContainer</span> <span class="kd">extends</span> <span class="n">StatefulWidget</span> <span class="p">{</span>
     <span class="nd">@override</span>
-    <span class="n">BodyContainerState</span> <span class="n">createState</span><span class="o">()</span> <span class="o">=&gt;</span> <span class="n">BodyContainerState</span><span class="o">();</span>
-  <span class="o">}</span>
+    <span class="n">BodyContainerState</span> <span class="n">createState</span><span class="p">()</span> <span class="o">=</span><span class="p">&gt;</span> <span class="n">BodyContainerState</span><span class="p">();</span>
+  <span class="p">}</span>
 
-  <span class="kd">class</span> <span class="nc">BodyContainerState</span> <span class="kd">extends</span> <span class="n">State</span><span class="o">&lt;</span><span class="n">BodyContainer</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="kd">class</span> <span class="nc">BodyContainerState</span> <span class="kd">extends</span> <span class="n">State</span><span class="p">&lt;</span><span class="n">BodyContainer</span><span class="p">&gt;</span> <span class="p">{</span>
     <span class="nd">@override</span>
-    <span class="n">Widget</span> <span class="n">build</span><span class="o">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="n">Scaffold</span><span class="o">(</span>
-        <span class="nl">appBar:</span> <span class="n">AppBar</span><span class="o">(</span>
-          <span class="nl">title:</span> <span class="n">Text</span><span class="o">(</span><span class="s">'안녕하세요?'</span><span class="o">),</span>
-        <span class="o">),</span>
-        <span class="nl">body:</span> <span class="k">new</span> <span class="n">Text</span><span class="o">(</span><span class="s">"다른 클래스입니다."</span><span class="o">),</span>
-      <span class="o">);</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+    <span class="n">Widget</span> <span class="n">build</span><span class="p">(</span><span class="n">BuildContext</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">Scaffold</span><span class="p">(</span>
+        <span class="nl">appBar:</span> <span class="n">AppBar</span><span class="p">(</span>
+          <span class="nl">title:</span> <span class="n">Text</span><span class="p">(</span><span class="s">'안녕하세요?'</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="nl">body:</span> <span class="k">new</span> <span class="n">Text</span><span class="p">(</span><span class="s">"다른 클래스입니다."</span><span class="p">),</span>
+      <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
 </code></pre></div></div>
 
 <p>이렇게 작성한 코드를 빌드하려면 flutter run 명령어를 통해 빌드할 수 있으며,</p>
@@ -358,56 +358,56 @@ into the {body} of the default.hbs template -->
 <h3 id="5-조건문-반복문-예외처리문-사용-방법">5. 조건문, 반복문, 예외처리문 사용 방법.</h3>
 
 <div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="c1">// 1.	if – else </span>
-  <span class="kd">var</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">57</span><span class="o">;</span>
-  <span class="k">if</span> <span class="o">(</span><span class="n">number</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="s">'Large Number'</span><span class="o">);</span>
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">number</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="s">'Small Number'</span><span class="o">);</span>
-  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="s">'number is 100'</span><span class="o">);</span>
-  <span class="o">}</span>
+  <span class="kd">var</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">57</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">number</span> <span class="p">&gt;</span> <span class="mi">100</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">'Large Number'</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">number</span> <span class="p">&lt;</span> <span class="mi">100</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">'Small Number'</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">'number is 100'</span><span class="p">);</span>
+  <span class="p">}</span>
   <span class="c1">//또는 삼항 연산자를 사용하여 간단히 구현할수도있습니다!</span>
-  <span class="kt">int</span> <span class="n">age</span> <span class="o">=</span> <span class="mi">60</span><span class="o">;</span>
-  <span class="kt">String</span> <span class="n">status</span> <span class="o">=</span> <span class="n">age</span> <span class="o">&lt;</span> <span class="mi">50</span> <span class="o">?</span> <span class="s">'still young'</span> <span class="o">:</span> <span class="s">'old man'</span><span class="o">;</span>
+  <span class="kt">int</span> <span class="n">age</span> <span class="o">=</span> <span class="mi">60</span><span class="p">;</span>
+  <span class="kt">String</span> <span class="n">status</span> <span class="o">=</span> <span class="n">age</span> <span class="p">&lt;</span> <span class="mi">50</span> <span class="o">?</span> <span class="s">'still young'</span> <span class="o">:</span> <span class="s">'old man'</span><span class="p">;</span>
 
   <span class="c1">// 2.	for </span>
-  <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">100</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="s">'number : '</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
-  <span class="o">}</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="p">&lt;</span><span class="mi">100</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">'number : '</span> <span class="o">+</span> <span class="n">i</span><span class="p">);</span>
+  <span class="p">}</span>
 
   <span class="c1">// 3.	While</span>
-  <span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span>
-  <span class="k">while</span> <span class="o">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
-    <span class="n">i</span><span class="o">++;</span>
-  <span class="o">}</span>
+  <span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="p">&lt;</span> <span class="mi">10</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+    <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
 
   <span class="c1">// 4.	do while</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
-  <span class="k">do</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">do</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
     <span class="n">i</span><span class="o">++</span>
-  <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">I</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">);</span>
+  <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">I</span> <span class="p">&lt;</span> <span class="mi">10</span><span class="p">);</span>
 
   <span class="c1">// 5.	switch</span>
-  <span class="kt">int</span> <span class="n">age</span> <span class="o">=</span> <span class="mi">50</span><span class="o">;</span>
-  <span class="k">switch</span> <span class="o">(</span><span class="n">age</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kt">int</span> <span class="n">age</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">age</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">case</span> <span class="mi">10</span> <span class="o">:</span>
-      <span class="n">print</span><span class="o">(</span><span class="s">"ten"</span><span class="o">);</span>
+      <span class="n">print</span><span class="p">(</span><span class="s">"ten"</span><span class="p">);</span>
       <span class="k">break</span>
-  <span class="o">}</span>
+  <span class="p">}</span>
 
   <span class="c1">// 6.	에외처리</span>
-  <span class="k">throw</span> <span class="k">new</span> <span class="n">Exception</span><span class="o">();</span>
+  <span class="k">throw</span> <span class="k">new</span> <span class="n">Exception</span><span class="p">();</span>
 
   <span class="c1">//7.	Try – catch – finally  </span>
-  <span class="k">try</span> <span class="o">{</span>
-    <span class="n">divide</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
-  <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
-  <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
-    <span class="n">print</span><span class="o">(</span><span class="s">'I will always be executed'</span><span class="o">);</span>
-  <span class="o">}</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="n">divide</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">'I will always be executed'</span><span class="p">);</span>
+  <span class="p">}</span>
 </code></pre></div></div>
 
 <p>다음에는 간단한 예제를 만들어보고, 안드로이드 포팅 및 IOS 포팅에 대해 알아보려고 합니다.</p>
@@ -678,7 +678,7 @@ into the {body} of the default.hbs template -->
         <!-- The footer at the very bottom of the screen -->
         <footer class="site-footer outer">
             <div class="site-footer-content inner">
-                <section class="copyright"><a href="http://localhost:4000/">Siansoft</a> &copy; 2022</section>
+                <section class="copyright"><a href="http://localhost:4000/">Siansoft</a> &copy; 2023</section>
                 <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> &
                     <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a> using
                     <a href="https://github.com/jekyllt/jasper2" target="_blank" rel="noopener">Jasper2</a></section>
