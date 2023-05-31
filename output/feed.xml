@@ -1,0 +1,1285 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-05-31T17:27:34+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Siansoft</title><subtitle>기술 블로그</subtitle><entry><title type="html">[ElectronJS] React 앱을 데스크톱 응용프로그램으로 변환(포팅)하기</title><link href="http://localhost:4000/react_porting_by_electron" rel="alternate" type="text/html" title="[ElectronJS] React 앱을 데스크톱 응용프로그램으로 변환(포팅)하기" /><published>2023-05-31T17:00:00+09:00</published><updated>2023-05-31T17:00:00+09:00</updated><id>http://localhost:4000/react_porting_by_electron</id><content type="html" xml:base="http://localhost:4000/react_porting_by_electron"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>React 기반의 웹 사이트를 데스크톱 응용 프로그램으로 포팅하는 방법이 있을까 싶어서 찾아보던 중 알게 된 ElectronJS.
+ElectronJS를 이용하면 굉장히 간단한 설정 몇번으로 React 기반(정확하게는 JS, HTML, CSS 기반)의 데스크톱 응용프로그램을 만들거나 포팅을 할 수 있다.
+이 포스트는 React -&gt; Windowns 응용 프로그램으로 포팅하는 아주 기본적인 설명을 작성한 포스트이다.</p>
+
+<h3 id="환경">환경</h3>
+
+<ul>
+  <li>Windows 11</li>
+  <li>Visual Studio Code 1.63.2</li>
+  <li>npx 9.5.1</li>
+  <li>yarn 1.22.19</li>
+  <li>React 18.2.0, react-scripts 5.0.1 (create-react-app)</li>
+  <li>electron 25.0.0</li>
+  <li>electron-builder 23.6.0</li>
+</ul>
+
+<h2 id="1-react-앱-준비">1.	React 앱 준비</h2>
+
+<p>본 포스팅을 위해 create-react-app을 통해 기본 react 앱을 생성하기로 하였다.
+윈도우 커맨드 창을 열어서 앱을 생성하기 원하는 위치로 이동한 뒤 아래 명령어를 입력한다.</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">npx create-react-app my-electron-app
+</span></code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_1.jpg" alt="img" /></p>
+
+<p>프로젝트가 생성되면 해당 프로젝트 경로에서 아래 명령어를 통해 react 앱을 실행시킨다.</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">yarn start
+</span></code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_2.jpg" alt="img" />
+<img src="\assets\built\images\electron\react_porting_by_electron_3.jpg" alt="img" />
+<img src="\assets\built\images\electron\react_porting_by_electron_4.jpg" alt="img" /></p>
+
+<p>create-react-app 기본포트인 3000번 포트로 접속하여 react 앱이 잘 올라갔는 지 확인한다.</p>
+
+<h2 id="2-electronjs-준비-및-개발환경에서-구동해보기">2.	ElectronJS 준비 및 개발환경에서 구동해보기</h2>
+
+<p>react 앱이 잘 구동되는 모습을 확인했다면 이제 electron 관련된 모듈들을 프로젝트에 추가한다.</p>
+
+<p>아래 명령어를 통해 프로젝트에 필요한 electron 관련 모듈을 추가하자.</p>
+
+<p>(이미지에는 -d 로 되어 있는데 -D 로 대문자로 입력해주자.)</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">yarn add -D electron electron-builder
+</span></code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_5.jpg" alt="img" /></p>
+
+<p>프로젝트 폴더로 이동하여 <strong>package.json</strong> 파일을 열어서 두 모듈이 잘 추가가 되었나 확인한다.</p>
+
+<p><img src="\assets\built\images\electron\react_porting_by_electron_6.jpg" alt="img" /></p>
+
+<p>모듈이 추가된 모습을 확인했다면 아래 코드를 <strong>package.json</strong> 파일에 입력한다.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"scripts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="err">...</span><span class="p">,</span><span class="w">  </span><span class="err">//</span><span class="w"> </span><span class="err">기존</span><span class="w"> </span><span class="err">스크립트들</span><span class="w">
+  </span><span class="nl">"electron-start"</span><span class="p">:</span><span class="w"> </span><span class="s2">"set ELECTRON_START_URL=http://localhost:3000 &amp;&amp; electron ."</span><span class="p">,</span><span class="w">
+</span><span class="p">}</span><span class="err">,</span><span class="w">
+</span><span class="nl">"main"</span><span class="p">:</span><span class="w"> </span><span class="s2">"public/Main.js"</span><span class="err">,</span><span class="w">
+</span><span class="nl">"homepage"</span><span class="p">:</span><span class="w"> </span><span class="s2">"./"</span><span class="err">,</span><span class="w">
+</span></code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_7.jpg" alt="img" /></p>
+
+<p>위에 작성한 main 속성에 해당하는 js 파일을 참조하여 electron을 실행하기 때문에 프로젝트의 <strong>public</strong> 경로 안에 <strong>Main.js</strong> 파일을 생성한 뒤 아래 코드를 붙여넣는다.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">{</span><span class="nx">app</span><span class="p">,</span> <span class="nx">BrowserWindow</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">electron</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">path</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">path</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">url</span><span class="dl">'</span><span class="p">);</span>
+
+<span class="kd">function</span> <span class="nx">createWindow</span><span class="p">()</span> <span class="p">{</span>
+    <span class="cm">/*
+    * 넓이 1920에 높이 1080의 FHD 풀스크린 앱을 실행시킵니다.
+    * */</span>
+    <span class="kd">const</span> <span class="nx">win</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">BrowserWindow</span><span class="p">({</span>
+        <span class="na">width</span><span class="p">:</span><span class="mi">1920</span><span class="p">,</span>
+        <span class="na">height</span><span class="p">:</span><span class="mi">1080</span>
+    <span class="p">});</span>
+
+    <span class="cm">/*
+    * ELECTRON_START_URL을 직접 제공할경우 해당 URL을 로드합니다.
+    * 만일 URL을 따로 지정하지 않을경우 (프로덕션빌드) React 앱이
+    * 빌드되는 build 폴더의 index.html 파일을 로드합니다.
+    * */</span>
+    <span class="kd">const</span> <span class="nx">startUrl</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">ELECTRON_START_URL</span> <span class="o">||</span> <span class="nx">url</span><span class="p">.</span><span class="nx">format</span><span class="p">({</span>
+        <span class="na">pathname</span><span class="p">:</span> <span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span> <span class="dl">'</span><span class="s1">/../build/index.html</span><span class="dl">'</span><span class="p">),</span>
+        <span class="na">protocol</span><span class="p">:</span> <span class="dl">'</span><span class="s1">file:</span><span class="dl">'</span><span class="p">,</span>
+        <span class="na">slashes</span><span class="p">:</span> <span class="kc">true</span>
+    <span class="p">});</span>
+
+    <span class="cm">/*
+    * startUrl에 배정되는 url을 맨 위에서 생성한 BrowserWindow에서 실행시킵니다.
+    * */</span>
+    <span class="nx">win</span><span class="p">.</span><span class="nx">loadURL</span><span class="p">(</span><span class="nx">startUrl</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="dl">'</span><span class="s1">ready</span><span class="dl">'</span><span class="p">,</span> <span class="nx">createWindow</span><span class="p">);</span>
+</code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_8.jpg" alt="img" /></p>
+
+<p>그 다음 react 앱이 실행되어 있는 상태로 터미널을 한개 더 실행하여 <strong>electron-start</strong> 명령어를 입력한다.</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">yarn electron-start   #</span><span class="w"> </span>다른 터미널에서 yarn start로 react 앱이 구동되고 있어야 함!
+</code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_9.jpg" alt="img" /></p>
+
+<p>electron 구동이 완료되면 아래와 같이 데스크톱 응용 프로그램으로 실행되는 모습을 확인할 수 있다.</p>
+
+<p><img src="\assets\built\images\electron\react_porting_by_electron_10.jpg" alt="img" /></p>
+
+<p>이미 구동되고 있는 3000포트의 react 앱을 불러오는 것이기 때문에 코드 수정 등이 바로바로 반영되는 모습을 확인할 수 있다.
+예시로, 아래와 같이 메인 화면에 문구를 추가하고 저장하면 응용 프로그램이 바로 수정되는 모습을 볼 수 있다.</p>
+
+<p><img src="\assets\built\images\electron\react_porting_by_electron_11.jpg" alt="img" /></p>
+
+<h2 id="3-응용-프로그램으로-빌드하기">3.	응용 프로그램으로 빌드하기</h2>
+
+<p>2번에서 진행한 내용은 개발단계로써, 3000포트에 띄운 react 앱을 응용 프로그램이 호출하는 것 뿐이다.
+하지만 ElectronJS를 통해 빌드를 하면 위와 같이 react 앱이 미리 구동되어 있을 필요가 없이 자체적으로 react 앱을 실행시켜서
+정말 하나의 데스크톱 응용 프로그램처럼 동작하게 된다.</p>
+
+<p>이제 빌드를 위해 다시 <strong>package.json</strong> 파일을 열어서 scripts 항목에 명령어 추가 및 build 항목을 추가하자.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"scripts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="err">...</span><span class="p">,</span><span class="w">  </span><span class="err">//</span><span class="w"> </span><span class="err">기존</span><span class="w"> </span><span class="err">스크립트들</span><span class="w">
+  </span><span class="nl">"electron-pack"</span><span class="p">:</span><span class="w"> </span><span class="s2">"yarn build &amp;&amp; electron-builder"</span><span class="w">
+</span><span class="p">}</span><span class="err">,</span><span class="w">
+</span><span class="err">...,</span><span class="w">
+</span><span class="nl">"build"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="nl">"productName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my-electron-app"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"asar"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"appId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.app.electron"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"extends"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"files"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"*.js"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"public"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"build"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"node_modules"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="err">,</span><span class="w">
+</span></code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_12.jpg" alt="img" /></p>
+
+<p>파일 저장 후 아래 명령어를 입력하여 빌드를 진행해보자.</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">yarn electron-pack
+</span></code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_13.jpg" alt="img" /></p>
+
+<p>빌드가 정상적으로 진행됬다면 아래와 같은 문구가 나온다.</p>
+
+<p><img src="\assets\built\images\electron\react_porting_by_electron_14.jpg" alt="img" /></p>
+
+<p>이제 프로젝트 경로에 진입해서 <strong>dist</strong> 폴더를 열어보면 아래와 같이 exe 파일이 빌드되어 있는 모습을 볼 수 있다.
+해당 exe 파일을 실행해주면 react 앱을 데스크톱에 설치해준다.</p>
+
+<p><img src="\assets\built\images\electron\react_porting_by_electron_15.jpg" alt="img" /></p>
+
+<p>설치가 완료되면 데스크톱 응용 프로그램으로 실행되는 모습을 확인할 수 있다.
+기존 3000포트에 react 앱을 구동시켜놓았다면 react 앱을 종료한 뒤 프로그램을 실행해보자.
+react 앱이 돌아가고 있지 않아도 프로그램이 정상 작동하는 모습을 확인할 수 있다.</p>
+
+<p><img src="\assets\built\images\electron\react_porting_by_electron_16.jpg" alt="img" /></p>
+
+<p>응용 프로그램을 설치한 것이기 때문에 <strong>프로그램 추가/제거</strong>에서도 해당 프로그램을 확인할 수 있다.</p>
+
+<p><img src="\assets\built\images\electron\react_porting_by_electron_17.jpg" alt="img" /></p>
+
+<h2 id="진행-중-마주친-에러">진행 중 마주친 에러</h2>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">Application entry file "public\Main.js" in the "C:\develop\Nodejs workplace\my-electron-app\dist\win-unpacked\resources\app.asar" does not exist. Seems like a wrong configuration.
+</span></code></pre></div></div>
+<p><img src="\assets\built\images\electron\react_porting_by_electron_18.jpg" alt="img" /></p>
+
+<p>포스트 작성 진행 중 위와 같은 에러를 마주친 적이 있는데 처음 진행시에는 <strong>package.json</strong> 파일 안의 <strong>build</strong> 항목에
+<strong>“extends”: null</strong> 속성이 없는 상태로 진행을 하였다. 그랬더니 위와 같은 에러가 발생했다.</p>
+
+<p><strong>package.json</strong> 파일 안에 아래와 같이 추가해주자.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"build"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="err">...</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"extends"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+</span><span class="p">}</span><span class="err">,</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="마치며">마치며</h2>
+
+<p>급하게 알아보느라 다른 분들의 포스트를 기반으로 진행하여 build 항목 안의 속성들이 무슨 의미를 가지고 있는지 등등을
+알아보지 않은 채로 일단 포스트를 작성하게 되었다. 추후 시간이 남을 때 더 자세히 알아봐야겠다.</p>
+
+<h2 id="참조-사이트">참조 사이트</h2>
+<p><a href="https://blog.codefactory.ai/electron/create-desktop-app-with-react-and-electron/1-project-setting/">https://blog.codefactory.ai/electron/create-desktop-app-with-react-and-electron/1-project-setting/</a></p>
+
+<p><a href="https://velog.io/@threejoon/React-Electron-%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0">https://velog.io/@threejoon/React-Electron-%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0</a></p>]]></content><author><name>sian</name></author><category term="Electron" /><category term="Electron, ElectronJS, React" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Unity AR App 개발 - Nreal glasses 360도 영상 App 개발</title><link href="http://localhost:4000/unity_6" rel="alternate" type="text/html" title="Unity AR App 개발 - Nreal glasses 360도 영상 App 개발" /><published>2023-05-17T09:50:00+09:00</published><updated>2023-05-17T09:50:00+09:00</updated><id>http://localhost:4000/unity_6</id><content type="html" xml:base="http://localhost:4000/unity_6"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.
+여섯번째로 이전 포스트에 이어서 Nreal glasses 360도 영상 App 개발에 대해 알아보자.</p>
+
+<h3 id="환경">환경</h3>
+
+<ul>
+  <li>Windows 11</li>
+  <li>Android 기반 스마트폰</li>
+  <li>Nreal Air</li>
+</ul>
+
+<h2 id="1---360도-영상-설정">1.   360도 영상 설정</h2>
+
+<p>1.1	Project 탭에서 Assets 내 material 폴더 생성</p>
+
+<p>1.2	Material 폴더에 360도 영상 파일을 복사</p>
+
+<p><img src="\assets\built\images\unity\unity_6_1_1.png" alt="img" /></p>
+
+<p>1.3	Material 폴더 우클릭 후 Create &gt; Render Texture 클릭</p>
+
+<p>1.4	생성된 Render Texture 클릭 후 Inspector 탭에서 Size 값을 1920 x 1080 으로 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_6_1_2.png" alt="img" /></p>
+
+<p>1.5	Material 폴더 우클릭 후 Create &gt; material 클릭</p>
+
+<p>1.6	생성된 material 클릭 후 Inspector 탭</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1.6.1	Shader 값을 Skybox/Panoramic 으로 설정
+
+1.6.2	Spherical 항목에 작성한 Render Texture 객체를 드래그 하여 설정
+</code></pre></div></div>
+
+<p><img src="\assets\built\images\unity\unity_6_1_3.png" alt="img" /></p>
+
+<p>1.7	Window &gt; Rendering &gt; Lighting 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_6_1_4.png" alt="img" /></p>
+
+<p>1.8	Lighting 창에서 Environment 클릭 후 Skybox Material 항목에 작성한 material 객체를 드래그 하여 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_6_1_5.png" alt="img" /></p>
+
+<p>1.9	Hierarchy 탭에서 + 버튼 클릭 후 Video &gt; Video Player 클릭</p>
+
+<p>1.10	생성된 Video Player 클릭 후 Inspector 탭</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1.10.1	Video Clip 항목에 360도 영상 설정
+
+1.10.2	Target Texture 항목에 작성한 Render Texture 설정
+
+1.10.3	반복 재생은 Loop 항목 체크
+</code></pre></div></div>
+
+<p><img src="\assets\built\images\unity\unity_6_1_6.png" alt="img" /></p>
+
+<h2 id="2---nreal-glass-설정">2.   Nreal glass 설정</h2>
+
+<p>2.1	Hierarchy 탭에서 DemoScenesMenu 삭제</p>
+
+<p>2.2	Hierarchy 탭에서 HelloMR &gt; NRCameraRig &gt; LeftCamera 클릭</p>
+
+<p>2.3	Inspector 탭에서 Camera &gt; Clear Flags 값을 Skybox 로 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_6_2_1.png" alt="img" /></p>
+
+<p>2.4 App 빌드 및 실행</p>]]></content><author><name>sian</name></author><category term="Unity" /><category term="Unity" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Unity AR App 개발 - Nreal glasses App 개발</title><link href="http://localhost:4000/unity_5" rel="alternate" type="text/html" title="Unity AR App 개발 - Nreal glasses App 개발" /><published>2023-05-17T09:40:00+09:00</published><updated>2023-05-17T09:40:00+09:00</updated><id>http://localhost:4000/unity_5</id><content type="html" xml:base="http://localhost:4000/unity_5"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.
+다섯번째로 AR 기기 중 하나인 Nreal glasses 용 AR App 개발에 대해 알아보자.</p>
+
+<h3 id="환경">환경</h3>
+
+<ul>
+  <li>Windows 11</li>
+  <li>Android 기반 스마트폰</li>
+  <li>Nreal Air</li>
+</ul>
+
+<h2 id="1---프로젝트-생성">1.   프로젝트 생성</h2>
+
+<p>1.1	개발자사이트(https://developer.nreal.ai/download) 접속하여 Nreal SDK 다운로드</p>
+
+<p><img src="\assets\built\images\unity\unity_5_1_1.png" alt="img" /></p>
+
+<p>1.2	이전 포스트 중 ‘프로젝트 생성’ 부분 참고하여 생성
+※ 필자의 개발환경 기준으로 최신 유니티 에디터 버전을 사용 시 빌드 오류가 발생되어 2020.03 에디터 버전으로 다운그레이드 후 정상 실행이 되어 이 버전 기준으로 작성함.</p>
+
+<h2 id="2---프로젝트-설정">2.   프로젝트 설정</h2>
+
+<p>2.1	File &gt; Build Settings &gt; Player Settings 
+    2.1.1	Other Settings 
+        2.1.1.1	Configuration &gt; Api compatibility Level 값을 .NET 4.x 로 설정
+        2.1.1.2	Write Permission 값을 External로 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_5_2_1.png" alt="img" /></p>
+
+<p>2.2	Resolution and Presentation 
+    2.2.1	Default Orientation 값을 Portrait 로 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_5_2_2.png" alt="img" /></p>
+
+<p>2.3	Quality &gt; V Sync Count 값을 Don’t Sync 로 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_5_2_3.png" alt="img" /></p>
+
+<h2 id="3--nreal-sdk-설치">3.  Nreal SDK 설치</h2>
+
+<p>3.1	Assets &gt; Import Package &gt; Custom Package 클릭</p>
+
+<p>3.2	다운받은 Nreal SDK 파일 선택</p>
+
+<p>3.3	Import Unity Package 창에서 Import 버튼 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_5_3_1.png" alt="img" /></p>
+
+<h2 id="4-nreal-demo-app-빌드-및-실행">4.	Nreal Demo App 빌드 및 실행</h2>
+
+<p>4.1	Project 탭에서 Assets &gt; NRSDK &gt; Demos &gt; HelloMR.unity 파일 더블클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_5_4_1.png" alt="img" /></p>
+
+<p>4.2	File &gt; Build Settings 에서 Add Open Scene 클릭 후 Build 실행</p>
+
+<p>4.3	사용할 스마트폰에 Nebula 앱 설치</p>
+
+<p>4.4	Nreal glass 를 스마트폰에 연결</p>
+
+<p>4.5	스마트폰에서 Nebula 앱 실행</p>
+
+<p>4.6	Nebula 앱에서 AR 스페이스 버튼 클릭</p>
+
+<p>4.7	Nubula 가상 화면에서 우측으로 이동하여 설치한 Unity app 실행</p>]]></content><author><name>sian</name></author><category term="Unity" /><category term="Unity" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Unity AR App 개발 - Text box 구현</title><link href="http://localhost:4000/unity_4" rel="alternate" type="text/html" title="Unity AR App 개발 - Text box 구현" /><published>2023-05-17T09:30:00+09:00</published><updated>2023-05-17T09:30:00+09:00</updated><id>http://localhost:4000/unity_4</id><content type="html" xml:base="http://localhost:4000/unity_4"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.
+네번째로 이전 포스트에서 설명했던 AR App 에서 사용할 Text box 구현 방법에 대해 알아보자.</p>
+
+<h2 id="1---canvas-생성">1.   Canvas 생성</h2>
+
+<p>1.1	Hierarchy 탭에서 + 버튼 클릭</p>
+
+<p>1.2	UI &gt; Canvas 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_4_1_1.png" alt="img" /></p>
+
+<p>1.3	Render Mode 값을 World Space 로 설정</p>
+
+<p>1.4	Canvas Scaler 항목 우측 버튼 클릭 후 Remove Component 클릭</p>
+
+<p>1.5	Canvas 크기 설정</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1.5.1	Pos X, Y, Z 값을 0으로 설정
+
+1.5.2	Width , Height 값을 1로 설정
+</code></pre></div></div>
+
+<p><img src="\assets\built\images\unity\unity_4_1_2.png" alt="img" /></p>
+
+<h2 id="2---text-생성">2.   Text 생성</h2>
+
+<p>2.1	Hierarchy 탭에서 Canvas 우클릭</p>
+
+<p>2.2	UI &gt; Text 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_4_2_1.png" alt="img" /></p>
+
+<p>2.3	Text 영역 설정</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2.3.1	Width, Height 값 설정
+
+2.3.2	Scale 값을 0.01로 설정
+</code></pre></div></div>
+
+<p>2.4	Text 설정</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2.4.1	표시할 Text 값 설정
+
+2.4.2	글꼴 설정
+
+2.4.3	정렬 설정
+
+2.4.4	글자색 설정
+</code></pre></div></div>
+
+<p><img src="\assets\built\images\unity\unity_4_2_2.png" alt="img" /></p>
+
+<p>2.5	Hierarchy 탭의 Canvas 항목을 드래그 하여 Project 탭으로 이동</p>
+
+<p>2.6	Hierarchy 탭의 Canvas 항목 삭제</p>
+
+<p><img src="\assets\built\images\unity\unity_4_2_3.png" alt="img" /></p>]]></content><author><name>sian</name></author><category term="Unity" /><category term="Unity" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Unity AR App 개발 - Multiple Image Tracking App 개발</title><link href="http://localhost:4000/unity_3" rel="alternate" type="text/html" title="Unity AR App 개발 - Multiple Image Tracking App 개발" /><published>2023-05-17T09:20:00+09:00</published><updated>2023-05-17T09:20:00+09:00</updated><id>http://localhost:4000/unity_3</id><content type="html" xml:base="http://localhost:4000/unity_3"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.
+세번째로 여러 이미지를 인식하여 각각 다른 이미지를 띄우는 Multiple Image Tracking App 개발에 대해 알아보자.</p>
+
+<h2 id="1---ar-모듈-설치">1.   AR 모듈 설치</h2>
+
+<p>1.1	메뉴 탭의 Window &gt; Package Manager 클릭</p>
+
+<p>1.2	Packages: In Project 항목 클릭하여 Unity registry 로 변경</p>
+
+<p>1.3	우측 상단 검색창에 ar 입력</p>
+
+<p>1.4	검색 결과 목록에서 AR Foundation 선택</p>
+
+<p>1.5	우측 하단 Install 클릭</p>
+
+<p>1.6	설치 완료 후 Package Manager 팝업 닫기</p>
+
+<p><img src="\assets\built\images\unity\unity_2_1_1.png" alt="img" /></p>
+
+<p>1.7	Hierarchy 탭에서 Main Camera 항목 삭제</p>
+
+<p><img src="\assets\built\images\unity\unity_2_1_2.png" alt="img" /></p>
+
+<p>1.8	+ 버튼 클릭하여 XR &gt; AR Session / AR Session Origin 각각 추가한다</p>
+
+<p><img src="\assets\built\images\unity\unity_2_1_3.png" alt="img" /></p>
+
+<h2 id="2-image-library-생성">2.	Image Library 생성</h2>
+
+<p>2.1	Project 탭에서 Assets 항목 우클릭</p>
+
+<p>2.2	Create &gt; folder 클릭하여 material 폴더 생성</p>
+
+<p>2.3	Material 폴더 우클릭 하여 create &gt; XR &gt; reference Image Object 생성</p>
+
+<p><img src="\assets\built\images\unity\unity_2_2_1.png" alt="img" /></p>
+
+<p>2.4	AR 앱으로 촬영할 대상 이미지 파일을 드래그하여 material 폴더로 복사</p>
+
+<p>2.5	생성한 Image Object 선택 후 Inspector 탭에서 Add Image 버튼 클릭</p>
+
+<p>2.6	Texture 2D 항목에 대상 이미지 파일을 드래그 하여 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_2_2_2.png" alt="img" /></p>
+
+<p>2.7	Inspector 탭에서 Specify Size 체크 후 Physical Size 값 설정 (인식할 이미지 크기 설정)
+※ X 값 또는 Y 값 입력 시 다른 값은 비율에 맞게 자동 입력</p>
+
+<p><img src="\assets\built\images\unity\unity_2_2_3.png" alt="img" /></p>
+
+<p>2.8	인식할 이미지 개수만큼 2.4 ~ 2.7 단계 반복</p>
+
+<h2 id="3-image-prefab-생성">3.	Image Prefab 생성</h2>
+
+<p>3.1	AR 앱으로 촬영할 대상 위에 표시할 이미지 파일을 material 폴더로 복사</p>
+
+<p>3.2	Hierarchy 탭에서 + 버튼을 클릭하여 3D Object &gt; Quad 선택</p>
+
+<p><img src="\assets\built\images\unity\unity_2_3_1.png" alt="img" /></p>
+
+<p>3.3	생성한 Quad 항목을 선택</p>
+
+<p>3.4	Inspector 탭의 하단 빈곳으로 복사한 이미지 파일을 드래그하여 이동</p>
+
+<p><img src="\assets\built\images\unity\unity_2_3_2.png" alt="img" /></p>
+
+<p>3.5	Hierarchy 탭에서 생성한 Quad 항목을 드래그하여 Project 탭의 material 폴더로 이동</p>
+
+<p>3.6	Material 폴더에 Quad 항목이 생성된 것을 확인 후 Hierarchy 탭에서 Quad 항목 삭제</p>
+
+<p><img src="\assets\built\images\unity\unity_2_3_3.png" alt="img" /></p>
+
+<p>3.7	표시할 이미지 개수만큼 반복</p>
+
+<h2 id="4-ar-설정">4.	AR 설정</h2>
+<p>4.1	Hierarchy 탭에서 AR Session Origin 항목 클릭</p>
+
+<p>4.2	Inspector 탭에서 Add Component 클릭</p>
+
+<p>4.3	AR Tracked Image Manager 추가</p>
+
+<p><img src="\assets\built\images\unity\unity_2_4_1.png" alt="img" /></p>
+
+<p>4.4	AR Tracked Image Manager 설정</p>
+
+<p>4.4.1	Serialized Library에 2.2에서 생성한 Image Library를 드래그 하여 이동</p>
+
+<p>4.4.2	Max Number Of Moving Images 의 값을 설정 (인식할 이미지 개수)</p>
+
+<p>4.4.3	Tracked Image Prefab에 None 으로 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_3_4_2.png" alt="img" /></p>
+
+<h2 id="5---multiple-image-tracking-스크립트-추가">5.   Multiple Image Tracking 스크립트 추가</h2>
+<p>5.1	Hierarchy 탭에서 AR Session Origin 항목 클릭</p>
+
+<p>5.2	Inspector 탭에서 Add Component 클릭</p>
+
+<p>5.3	Search 에서 New script 클릭</p>
+
+<p>5.4	Name 부분에 생성할 스크립트 명 작성</p>
+
+<p>5.5	Create and Add 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_3_5_1.png" alt="img" /></p>
+
+<p>5.6	생성된 스크립트 항목의 우측 아이콘 클릭</p>
+
+<p>5.7	메뉴에서 Edit Script 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_3_5_2.png" alt="img" /></p>
+
+<h2 id="6--multiple-image-tracking-스크립트-코드-작성">6.  Multiple Image Tracking 스크립트 코드 작성</h2>
+<p>6.1	라이브러리 및 전역변수 선언</p>
+
+<p><img src="\assets\built\images\unity\unity_3_6_1.png" alt="img" /></p>
+
+<p>6.2	Awake 함수 선언</p>
+
+<p><img src="\assets\built\images\unity\unity_3_6_2.png" alt="img" /></p>
+
+<p>6.3	이미지 감지 이벤트 처리 함수 선언</p>
+
+<p><img src="\assets\built\images\unity\unity_3_6_3.png" alt="img" /></p>
+
+<h2 id="7--multiple-script-prefab-설정">7.  Multiple script prefab 설정</h2>
+<p>7.1	Hierarchy 탭에서 AR Session Origin 항목 클릭</p>
+
+<p>7.2	추가한 스크립트 내 Prefabs 에서 + 버튼을 눌러 목록 증가</p>
+
+<p><img src="\assets\built\images\unity\unity_3_7_1.png" alt="img" /></p>
+
+<p>7.3	Prefabs 목록에 표시할 이미지 Prefab 등록</p>
+
+<p><img src="\assets\built\images\unity\unity_3_7_2.png" alt="img" /></p>
+
+<h2 id="8--app-빌드">8.  App 빌드</h2>]]></content><author><name>sian</name></author><category term="Unity" /><category term="Unity" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Unity AR App 개발 - Image Tracking App 개발</title><link href="http://localhost:4000/unity_2" rel="alternate" type="text/html" title="Unity AR App 개발 - Image Tracking App 개발" /><published>2023-05-17T09:10:00+09:00</published><updated>2023-05-17T09:10:00+09:00</updated><id>http://localhost:4000/unity_2</id><content type="html" xml:base="http://localhost:4000/unity_2"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.
+두번째로 특정 이미지 위에 다른 이미지를 띄우는 Image Tracking App 개발에 대해 알아보자.</p>
+
+<h2 id="1-ar-모듈-설치">1.	AR 모듈 설치</h2>
+
+<p>1.1	메뉴 탭의 Window &gt; Package Manager 클릭</p>
+
+<p>1.2	Packages: In Project 항목 클릭하여 Unity registry 로 변경</p>
+
+<p>1.3	우측 상단 검색창에 ar 입력</p>
+
+<p>1.4	검색 결과 목록에서 AR Foundation 선택</p>
+
+<p>1.5	우측 하단 Install 클릭</p>
+
+<p>1.6	설치 완료 후 Package Manager 팝업 닫기</p>
+
+<p><img src="\assets\built\images\unity\unity_2_1_1.png" alt="img" /></p>
+
+<p>1.7	Hierarchy 탭에서 Main Camera 항목 삭제</p>
+
+<p><img src="\assets\built\images\unity\unity_2_1_2.png" alt="img" /></p>
+
+<p>1.8	+ 버튼 클릭하여 XR &gt; AR Session / AR Session Origin 각각 추가한다</p>
+
+<p><img src="\assets\built\images\unity\unity_2_1_3.png" alt="img" /></p>
+
+<h2 id="2-image-library-생성">2.	Image Library 생성</h2>
+
+<p>2.1	Project 탭에서 Assets 항목 우클릭</p>
+
+<p>2.2	Create &gt; folder 클릭하여 material 폴더 생성</p>
+
+<p><img src="\assets\built\images\unity\unity_2_2_1.png" alt="img" /></p>
+
+<p>2.3	Material 폴더 우클릭 하여 create &gt; XR &gt; reference Image Object 생성</p>
+
+<p><img src="\assets\built\images\unity\unity_2_2_2.png" alt="img" /></p>
+
+<p>2.4	AR 앱으로 촬영할 대상 이미지 파일을 드래그하여 material 폴더로 복사</p>
+
+<p>2.5	생성한 Image Object 선택 후 Inspector 탭에서 Add Image 버튼 클릭</p>
+
+<p>2.6	Texture 2D 항목에 대상 이미지 파일을 드래그 하여 설정</p>
+
+<p><img src="\assets\built\images\unity\unity_2_2_3.png" alt="img" /></p>
+
+<p>2.7	Inspector 탭에서 Specify Size 체크 후 Physical Size 값 설정 (인식할 이미지 크기 설정)
+※ X 값 또는 Y 값 입력 시 다른 값은 비율에 맞게 자동 입력</p>
+
+<p><img src="\assets\built\images\unity\unity_2_2_4.png" alt="img" /></p>
+
+<h2 id="3-image-prefab-생성">3.	Image Prefab 생성</h2>
+
+<p>3.1	AR 앱으로 촬영할 대상 위에 표시할 이미지 파일을 material 폴더로 복사</p>
+
+<p>3.2	Hierarchy 탭에서 + 버튼을 클릭하여 3D Object &gt; Quad 선택</p>
+
+<p><img src="\assets\built\images\unity\unity_2_3_1.png" alt="img" /></p>
+
+<p>3.3	생성한 Quad 항목을 선택</p>
+
+<p>3.4	Inspector 탭의 하단 빈곳으로 복사한 이미지 파일을 드래그하여 이동</p>
+
+<p><img src="\assets\built\images\unity\unity_2_3_2.png" alt="img" /></p>
+
+<p>3.5	Hierarchy 탭에서 생성한 Quad 항목을 드래그하여 Project 탭의 material 폴더로 이동</p>
+
+<p>3.6	Material 폴더에 Quad 항목이 생성된 것을 확인 후 Hierarchy 탭에서 Quad 항목 삭제</p>
+
+<p><img src="\assets\built\images\unity\unity_2_3_3.png" alt="img" /></p>
+
+<h2 id="4-ar-설정">4.	AR 설정</h2>
+<p>4.1	Hierarchy 탭에서 AR Session Origin 항목 클릭</p>
+
+<p>4.2	Inspector 탭에서 Add Component 클릭</p>
+
+<p>4.3	AR Tracked Image Manager 추가</p>
+
+<p><img src="\assets\built\images\unity\unity_2_4_1.png" alt="img" /></p>
+
+<p>4.4	AR Tracked Image Manager 설정</p>
+
+<p>4.4.1	Serialized Library에 2.2에서 생성한 Image Library를 드래그 하여 이동</p>
+
+<p>4.4.2	Max Number Of Moving Images 의 값을 설정 (인식할 이미지 개수)</p>
+
+<p>4.4.3	Tracked Image Prefab에 2.3에서 생성한 Image Prefab을 드래그 하여 이동</p>
+
+<p><img src="\assets\built\images\unity\unity_2_4_2.png" alt="img" /></p>
+
+<h2 id="5-app-빌드">5.	App 빌드</h2>]]></content><author><name>sian</name></author><category term="Unity" /><category term="Unity" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Unity AR App 개발 - Unity 설치 및 프로젝트 설정</title><link href="http://localhost:4000/unity_1" rel="alternate" type="text/html" title="Unity AR App 개발 - Unity 설치 및 프로젝트 설정" /><published>2023-05-17T09:00:00+09:00</published><updated>2023-05-17T09:00:00+09:00</updated><id>http://localhost:4000/unity_1</id><content type="html" xml:base="http://localhost:4000/unity_1"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>Unity 기반 안드로이드용 AR app 개발을 하기 위해 조사 및 테스트한 내용을 정리하기 위해 본 포스트를 작성하였다.
+첫번째로 Unity 설치 및 프로젝트 설정에 대해 알아보자.</p>
+
+<h3 id="환경">환경</h3>
+
+<ul>
+  <li>Windows 11</li>
+  <li>Android 기반 스마트폰</li>
+</ul>
+
+<h2 id="1-unity-hub-설치">1.	Unity Hub 설치</h2>
+
+<ul>
+  <li>유니티 사이트(https://unity.com/kr/download) 접속하여 다운로드</li>
+</ul>
+
+<p><img src="\assets\built\images\unity\unity_1_1.png" alt="img" /></p>
+
+<h2 id="2-unity-editor-설치">2.	Unity Editor 설치</h2>
+
+<p>2.1	Unity Hub 실행</p>
+
+<p>2.2	좌측 메뉴 Installs 메뉴 클릭</p>
+
+<p>2.3	우측 상단 Install Editor 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_1_2_1.png" alt="img" /></p>
+
+<p>2.4	설치할 에디터 버전 항목의 Install 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_1_2_2.png" alt="img" /></p>
+
+<p>2.5 이전 버전 에디터 설치하려면 유니티 아카이브 사이트(https://unity.com/releases/editor/archive) 접속하여 해당 버전 항목의 Unity Hub 버튼 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_1_2_3.png" alt="img" /></p>
+
+<p>2.6	설치항목 선택 (안드로이드 앱 기준)</p>
+
+<p>2.6.1	안드로이드 관련 항목(SDK/NDK 등) 체크</p>
+
+<p>2.6.2	Visual Studio 항목 체크 후 Install 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_1_2_4.png" alt="img" /></p>
+
+<h2 id="3-프로젝트-생성">3.	프로젝트 생성</h2>
+
+<p>3.1	Unity Hub 실행</p>
+
+<p>3.2	좌측 메뉴 Projects 클릭</p>
+
+<p>3.3	우측 상단 New project 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_1_3_1.png" alt="img" /></p>
+
+<p>3.4	중앙 상단 사용할 에디터 버전 선택</p>
+
+<p>3.5	프로젝트 템플릿은 3D Core 선택</p>
+
+<p>3.6	우측 하단 Project name 설정</p>
+
+<p>3.7	Create project 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_1_3_2.png" alt="img" /></p>
+
+<h2 id="4-프로젝트-설정">4.	프로젝트 설정</h2>
+
+<p>4.1	플랫폼 변경</p>
+
+<p>4.1.1	File &gt; Build Settings 클릭</p>
+
+<p><img src="\assets\built\images\unity\unity_1_4_1.png" alt="img" /></p>
+
+<p>4.1.2	Platform 항목에서 안드로이드 선택 후 Switch Platform 클릭</p>
+
+<p>4.2	빌드 설정</p>
+
+<p>4.2.1	Build Settings 창 하단 Player Settings 클릭</p>
+
+<p>4.2.2	Company Name, Product Name 설정 (빌드 시 해당 설정값으로 패키지명 자동설정 됨)</p>
+
+<p>4.2.3	Other Settings 클릭</p>
+
+<p>4.2.4	Auto Graphics API 체크해제</p>
+
+<p>4.2.5	Graphics APIs 항목에서 Vulkan 클릭 후 아래 – 버튼 클릭하여 제외</p>
+
+<p><img src="\assets\built\images\unity\unity_1_4_2.png" alt="img" /></p>
+
+<p>4.2.6	Minimum API Level 설정 (24 ~ 26 버전 설정 권장)</p>
+
+<p>4.2.7	Target API Level 설정 (기본값으로 사용 권장, 빌드 실패 시 유니티 에디터 버전에 맞는 안드로이드 버전으로 설정)</p>
+
+<p>4.2.8	Scripting Backend 값을 IL2CPP 로 설정</p>
+
+<p>4.2.9 Target Architectures 에서 ARM64 체크 (갤럭시 S20 이상에서 구동 시 필수)</p>
+
+<p><img src="\assets\built\images\unity\unity_1_4_3.png" alt="img" /></p>
+
+<p>4.2.10	Project Settings &gt; XR Plug-in Management 클릭</p>
+
+<p>4.2.11	XR Install 클릭</p>
+
+<p>4.2.12	ARCore 체크</p>
+
+<p><img src="\assets\built\images\unity\unity_1_4_4.png" alt="img" /></p>
+
+<h2 id="5-app-빌드">5.	App 빌드</h2>
+
+<p>5.1	File &gt; Build Settings 클릭</p>
+
+<p>5.2	Add Open Scenes 클릭</p>
+
+<p>5.3	빌드할 Scene 항목 체크</p>
+
+<p>5.4	연결된 기기가 있을 시, Run Device 에서 연결한 기기 선택</p>
+
+<p>5.5	Build And Run 실행</p>
+
+<p><img src="\assets\built\images\unity\unity_1_5_1.png" alt="img" /></p>
+
+<p>5.6	생성할 APK 파일명 설정 후 저장</p>
+
+<p>5.7	빌드 완료 후 해당 프로젝트 폴더에 APK 파일 생성</p>
+
+<p>5.8	Run Device 에서 연결한 기기 선택 시, 기기에서 자동 실행됨</p>]]></content><author><name>sian</name></author><category term="Unity" /><category term="Unity" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Letsencrypt + Nginx SSL인증서(HTTPS) 적용 (Ubuntu22.04 개정판)</title><link href="http://localhost:4000/ssl-letsencrypt-ubuntu22" rel="alternate" type="text/html" title="Letsencrypt + Nginx SSL인증서(HTTPS) 적용 (Ubuntu22.04 개정판)" /><published>2022-06-13T00:00:00+09:00</published><updated>2022-06-13T00:00:00+09:00</updated><id>http://localhost:4000/ssl-letsencrypt-ubuntu22</id><content type="html" xml:base="http://localhost:4000/ssl-letsencrypt-ubuntu22"><![CDATA[<h2 id="서론">서론</h2>
+
+<p>이전에 <a href="https://sianlab.github.io/ssl-letsencrypt/" title="Letsencrypt + Nginx SSL인증서(HTTPS) 적용">ubuntu 18버전에 Let’s Encrypt를 이용하여 SSL 환경을 구성한 포스트</a>를 작성했었다. 몇년이 지나고 현재 ubuntu 22 버전에 다시 SSL을 세팅할 일이 생겨서 이전에 작성한 포스트를 보며 변경된 부분을 개정하여 본 포스트를 작성하였다.</p>
+
+<h3 id="환경">환경</h3>
+
+<ul>
+  <li>Ubuntu 22.04</li>
+  <li>apt-get 을 통해 설치한 Nginx</li>
+  <li>도메인 ( 이전에는 ngrok를 이용한 임시 도메인을 사용하였지만 이번에는 실 도메인 사용 )</li>
+</ul>
+
+<h2 id="lets-encrypt">Let’s Encrypt</h2>
+
+<ul>
+  <li>웹 사이트에 HTTPS (SSL / TLS)를 사용하기 위해 필요한 디지털 인증서를 무료로 제공</li>
+  <li>인증서의 자동 갱신을 지원</li>
+  <li>자세한 내용은  <a href="https://letsencrypt.org/about/"> Let’s Encrypt 공식 사이트</a> 에서 확인</li>
+</ul>
+
+<h2 id="nginx-설치">Nginx 설치</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>apt-get <span class="nb">install </span>nginx
+</code></pre></div></div>
+
+<p>80 포트를 사용하는 또다른 서비스가 존재한다면 서비스를 중지하거나 삭제 한 후 nginx 설치</p>
+
+<p>설치완료 후 간단하게 curl을 이용하여 웹사이트가 오픈되었는 지 확인해보았다. curl을 사용하기 어려운 환경이라거나 브라우저로 직접 확인해보고 싶다면 localhost 주소에 http 기본 포트인 80 포트로 접속해보면 된다.</p>
+
+<p><img src="\assets\built\images\letsencrypt\ubuntu22\ssl1.JPG" alt="img" /></p>
+
+<p><img src="\assets\built\images\letsencrypt\ubuntu22\ssl2.JPG" alt="img" /></p>
+
+<p>Nginx 화면이 나오지 않을 시에는</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>service nginx restart
+</code></pre></div></div>
+
+<p>명령어로 nginx 를 재시작 해본 뒤 다시 웹 브라우저에서 접속시도 nginx index 화면이 제대로 나온다면 이제 Let’s Encrypt 를 이용하여 SSL 인증서를 받아보자</p>
+
+<h2 id="certbot--설치">certbot  설치</h2>
+
+<p>이전에 작성한 글을 따라 certbot 저장소를 추가하려고 했는데 아래와 같이 deprecated 됬다고 한다.</p>
+
+<p><img src="\assets\built\images\letsencrypt\ubuntu22\ssl3.JPG" alt="img" /></p>
+
+<p>그래서 <a href="https://certbot.eff.org/instructions?ws=nginx&amp;os=ubuntufocal/" title="certbot install 사이트">certbot install 사이트</a>를 참고하여 certbot을 설치하였다.</p>
+
+<p>certbot 사이트에 따르면 certbot 설치 시 이제는 snap을 이용하는 것으로 보인다. snap은 ubuntu에 기본적으로 설치되어 있다고 하니 따로 설치하지 않고 바로 명령어를 이용하여 certbot을 설치하였다. (ubuntu 어느 버전부터 기본 설치가 되어 있는지는 확인하지 못하였다.)</p>
+
+<p>certbot 설치 전에 snap을 최신화해주자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>snap <span class="nb">install </span>core<span class="p">;</span> <span class="nb">sudo </span>snap refresh core
+</code></pre></div></div>
+
+<p>다음으로 certbot을 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>snap <span class="nb">install</span> <span class="nt">--classic</span> certbot
+</code></pre></div></div>
+
+<p>설치 완료 시 아래와 같은 화면이 나왔다.</p>
+
+<p><img src="\assets\built\images\letsencrypt\ubuntu22\ssl4.JPG" alt="img" /></p>
+
+<p>다음으로 certbot 명령어를 바로 사용할 수 있게 아래와 같이 링크를 만들어준다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo ln</span> <span class="nt">-s</span> /snap/bin/certbot /usr/bin/certbot
+</code></pre></div></div>
+
+<p>아래와 같이 아무 에러도 없다면 링크파일 생성에 성공한 것이다.</p>
+
+<p><img src="\assets\built\images\letsencrypt\ubuntu22\ssl5.JPG" alt="img" /></p>
+
+<p>이제 certbot을 이용하여 인증서를 내려받고 nginx에 연동을 한다. 설치 가이드에 따르면 인증서 내려받기 및 nginx 연동까지 자동으로 해주는 방법과 그냥 인증서만 내려받는 방법 두가지가 소개되어 있는데, nginx도 기본으로 설치하고 따로 세팅한 부분이 없으므로 nginx 설정까지 자동으로 해주는 명령어를 이용해보았다.</p>
+
+<p>아래 명령어를 입력하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>certbot <span class="nt">--nginx</span>
+</code></pre></div></div>
+
+<p>그러면 아래와 같이 이메일과 자신의 도메인을 입력하면 certbot이 자동으로 환경을 구성해준다.</p>
+
+<p><img src="\assets\built\images\letsencrypt\ubuntu22\ssl6.JPG" alt="img" /></p>
+
+<p>인증서와 키파일의 저장 경로도 표시해주니 필요 시 따로 기록해두면 될 것 같다.</p>
+
+<h2 id="인증서-갱신">인증서 갱신</h2>
+
+<p>certbot이 인증서의 자동 갱신도 지원해주기 때문에 갱신에 관해 별도로 신경쓰지 않아도 되는 것으로 보인다. 가이드 페이지에 갱신 테스트 명령어도 있으니 필요한 사람은 직접 입력해보면 될 것 같다.</p>
+
+<h2 id="https-확인">HTTPS 확인</h2>
+
+<p>발급 받은 인증서가 제대로 인증되는 지 확인을 위해 이용중인 브라우저로 내 도메인 사이트에 접속해본다. 아래와 같이 URL 표시줄에 자물쇠 표시가 나타나면 성공한 것이다.</p>
+
+<p><img src="\assets\built\images\letsencrypt\ubuntu22\ssl7.JPG" alt="img" /></p>
+
+<h2 id="troubleshooting">troubleshooting</h2>
+
+<p>본 포스트 내용을 진행중에 따로 에러가 난 부분이 없어서 추후 에러사항이 있다면 추가해나갈 계획이다.</p>]]></content><author><name>sian</name></author><category term="SSL" /><category term="https" /><category term="SSL" /><category term="letsencrypt" /><summary type="html"><![CDATA[서론]]></summary></entry><entry><title type="html">Apache Ignite 살펴보기</title><link href="http://localhost:4000/apache-ignite-overview" rel="alternate" type="text/html" title="Apache Ignite 살펴보기" /><published>2022-06-07T00:00:00+09:00</published><updated>2022-06-07T00:00:00+09:00</updated><id>http://localhost:4000/apache-ignite-overview</id><content type="html" xml:base="http://localhost:4000/apache-ignite-overview"><![CDATA[<p>아파치 재단에서 Apache Ignite라는 분산형 데이터베이스 서비스를 출시했다. 메모리와 저장장치 간 데이터를 분산하여 속도, 안정성 모두 고려하여 개발된 데이터베이스로 보인다. 사이트에 접속해보면 여러가지 기술들이 나열되어 있는데 이론적인 이야기는 일단 제쳐두고 간단하게 메모리 DB로 사용해 본 내용을 본 포스트에 기재한다.</p>
+
+<p>만약 지원하는 기술 및 각종 가이드가 궁금한 사람은 아래 사이트에 접속해서 확인해보면 된다.</p>
+
+<p><a href="https://ignite.apache.org" title="Apache Ignite 페이지">Apache Ignite 페이지</a></p>
+
+<h1 id="apache-ignite-설치-및-서버-실행">Apache Ignite 설치 및 서버 실행</h1>
+
+<p>Apache Ignite를 사용하기 위해선 먼저 사이트에 접속하여 다운로드 페이지에서 Ignite를 다운로드 받아야 한다.</p>
+
+<p><a href="https://ignite.apache.org/download.cgi#binaries" title="Apache Ignite 다운로드 페이지">Apache Ignite 다운로드 페이지</a></p>
+
+<p>위 사이트에 접속하여 원하는 버전을 다운로드 받는다. 필자는 포스트 작성 당시 latest 버전인 2.13.0를 받았다.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img1.png" alt="" /></p>
+
+<p>다운로드 받은 zip 파일을 압축해제한 뒤, 해당 폴더를 명령 프롬프트로 진입한다. (윈도우에서 진행했기 때문에 cmd를 이용하였다.)</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img2.png" alt="" /></p>
+
+<p>bin 폴더 내부에 진입했다면 아래 명령어를 실행해주자. Windows와 Unix 간 명령어가 다른 것에 주의. (bat, sh)</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">#</span><span class="w"> </span>Windows
+<span class="go">ignite.bat ..\examples\config\example-ignite.xml
+
+</span><span class="gp">#</span><span class="w"> </span>Unix
+<span class="go">./ignite.sh ../examples/config/example-ignite.xml
+</span></code></pre></div></div>
+
+<p>아래 이미지와 같이 서버가 구동되는지 확인한다.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img3.png" alt="" /></p>
+
+<blockquote>
+  <p>java는 1.8_301 버전을 이용</p>
+
+  <p>openjdk 1.8 버전에서 에러가 발생하여 추후 알아볼 예정</p>
+</blockquote>
+
+<h2 id="java-client를-이용하여-기본-구현">Java client를 이용하여 기본 구현</h2>
+
+<p>평소에 사용하던 언어인 Java를 이용하여 기본 메모리 DB에 read, write를 하는 클라이언트를 작성하였다. Ignite 사이트에 각종 다른 언어 매뉴얼이 있으니 다른 언어는 사이트의 가이드에서 확인할 수 있다.</p>
+
+<p>우선 첫번째로 maven project를 생성하여 pom.xml에 ignite 의존성을 추가한다.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;properties&gt;</span>
+	<span class="nt">&lt;ignite.version&gt;</span>2.13.0<span class="nt">&lt;/ignite.version&gt;</span>
+<span class="nt">&lt;/properties&gt;</span>
+
+<span class="nt">&lt;dependencies&gt;</span>
+	<span class="nt">&lt;dependency&gt;</span>
+		<span class="nt">&lt;groupId&gt;</span>org.apache.ignite<span class="nt">&lt;/groupId&gt;</span>
+		<span class="nt">&lt;artifactId&gt;</span>ignite-core<span class="nt">&lt;/artifactId&gt;</span>
+		<span class="nt">&lt;version&gt;</span>${ignite.version}<span class="nt">&lt;/version&gt;</span>
+	<span class="nt">&lt;/dependency&gt;</span>
+	<span class="nt">&lt;dependency&gt;</span>
+		<span class="nt">&lt;groupId&gt;</span>org.apache.ignite<span class="nt">&lt;/groupId&gt;</span>
+		<span class="nt">&lt;artifactId&gt;</span>ignite-spring<span class="nt">&lt;/artifactId&gt;</span>
+		<span class="nt">&lt;version&gt;</span>${ignite.version}<span class="nt">&lt;/version&gt;</span>
+	<span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;/dependencies&gt;</span>
+</code></pre></div></div>
+
+<p>그 후 Java 코드를 작성한다. Ignite에서 제공하는 기본 코드다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">package</span> <span class="nn">main</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.Collections</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">org.apache.ignite.Ignite</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.IgniteCache</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.Ignition</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.configuration.IgniteConfiguration</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.lang.IgniteRunnable</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.resources.IgniteInstanceResource</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">IgniteTest</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+		<span class="c1">// Preparing IgniteConfiguration using Java APIs</span>
+        <span class="nc">IgniteConfiguration</span> <span class="n">cfg</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">IgniteConfiguration</span><span class="o">();</span>
+
+        <span class="c1">// The node will be started as a client node.</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setClientMode</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+
+        <span class="c1">// Classes of custom Java logic will be transferred over the wire from this app.</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setPeerClassLoadingEnabled</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+
+        <span class="c1">// Setting up an IP Finder to ensure the client can locate the servers.</span>
+        <span class="nc">TcpDiscoveryMulticastIpFinder</span> <span class="n">ipFinder</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">TcpDiscoveryMulticastIpFinder</span><span class="o">();</span>
+        <span class="n">ipFinder</span><span class="o">.</span><span class="na">setAddresses</span><span class="o">(</span><span class="nc">Collections</span><span class="o">.</span><span class="na">singletonList</span><span class="o">(</span><span class="s">"127.0.0.1:47500..47509"</span><span class="o">));</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setDiscoverySpi</span><span class="o">(</span><span class="k">new</span> <span class="nc">TcpDiscoverySpi</span><span class="o">().</span><span class="na">setIpFinder</span><span class="o">(</span><span class="n">ipFinder</span><span class="o">));</span>
+
+        <span class="c1">// Starting the node</span>
+        <span class="nc">Ignite</span> <span class="n">ignite</span> <span class="o">=</span> <span class="nc">Ignition</span><span class="o">.</span><span class="na">start</span><span class="o">(</span><span class="n">cfg</span><span class="o">);</span>
+
+        <span class="c1">// Create an IgniteCache and put some values in it.</span>
+        <span class="nc">IgniteCache</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">ignite</span><span class="o">.</span><span class="na">getOrCreateCache</span><span class="o">(</span><span class="s">"myCache"</span><span class="o">);</span>
+        <span class="n">cache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="s">"Hello"</span><span class="o">);</span>
+        <span class="n">cache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="s">"World!"</span><span class="o">);</span>
+
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; Created the cache and add the values."</span><span class="o">);</span>
+
+        <span class="c1">// Executing custom Java compute task on server nodes.</span>
+        <span class="n">ignite</span><span class="o">.</span><span class="na">compute</span><span class="o">(</span><span class="n">ignite</span><span class="o">.</span><span class="na">cluster</span><span class="o">().</span><span class="na">forServers</span><span class="o">()).</span><span class="na">broadcast</span><span class="o">(</span><span class="k">new</span> <span class="nc">RemoteTask</span><span class="o">());</span>
+
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; Compute task is executed, check for output on the server nodes."</span><span class="o">);</span>
+
+        <span class="c1">// Disconnect from the cluster.</span>
+        <span class="n">ignite</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+	<span class="o">}</span>
+	
+	<span class="cm">/**
+     * A compute tasks that prints out a node ID and some details about its OS and JRE.
+     * Plus, the code shows how to access data stored in a cache from the compute task.
+     */</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">RemoteTask</span> <span class="kd">implements</span> <span class="nc">IgniteRunnable</span> <span class="o">{</span>
+        <span class="nd">@IgniteInstanceResource</span>
+        <span class="nc">Ignite</span> <span class="n">ignite</span><span class="o">;</span>
+
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; Executing the compute task"</span><span class="o">);</span>
+
+            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span>
+                <span class="s">"   Node ID: "</span> <span class="o">+</span> <span class="n">ignite</span><span class="o">.</span><span class="na">cluster</span><span class="o">().</span><span class="na">localNode</span><span class="o">().</span><span class="na">id</span><span class="o">()</span> <span class="o">+</span> <span class="s">"\n"</span> <span class="o">+</span>
+                <span class="s">"   OS: "</span> <span class="o">+</span> <span class="nc">System</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="s">"os.name"</span><span class="o">)</span> <span class="o">+</span>
+                <span class="s">"   JRE: "</span> <span class="o">+</span> <span class="nc">System</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="s">"java.runtime.name"</span><span class="o">));</span>
+
+            <span class="nc">IgniteCache</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">ignite</span><span class="o">.</span><span class="na">cache</span><span class="o">(</span><span class="s">"myCache"</span><span class="o">);</span>
+
+            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; "</span> <span class="o">+</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">+</span> <span class="s">" "</span> <span class="o">+</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Ignite 가이드에서 제공하는 Java 코드는 기본 cache를 하나 만든 뒤, 해당 cache에 데이터 2개를 저장한 후, 서버에서 해당 데이터를 출력하는 task를 보내는 방식으로 작성되어 있다. 위 코드를 작성한 뒤 코드를 실행해보면 아래와 같이 Java 콘솔이 출력된다.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img4.png" alt="" /></p>
+
+<p>클라이언트에서 작성한대로, 서버에 task를 execute했으니 서버 콘솔을 확인해보라는 메시지가 나온다면 성공이다. 이제 Ignite 서버 콘솔을 확인한다.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img5.png" alt="" /></p>
+
+<p>task에 작성한대로 콘솔에 데이터가 출력되는 모습이 확인된다. 서버의 cache에 데이터가 잘 저장되었다.</p>
+
+<p>다음은 클라이언트에서 값을 저장하고, 서버에서 확인하는 것이 아니라 클라이언트에서 값을 확인해보는 코드를 작성하였다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">package</span> <span class="nn">main</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.Collections</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">org.apache.ignite.Ignite</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.IgniteCache</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.Ignition</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.configuration.IgniteConfiguration</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">IgniteTest</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+		<span class="c1">// Preparing IgniteConfiguration using Java APIs</span>
+        <span class="nc">IgniteConfiguration</span> <span class="n">cfg</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">IgniteConfiguration</span><span class="o">();</span>
+
+        <span class="c1">// The node will be started as a client node.</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setClientMode</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+
+        <span class="c1">// Classes of custom Java logic will be transferred over the wire from this app.</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setPeerClassLoadingEnabled</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+
+        <span class="c1">// Setting up an IP Finder to ensure the client can locate the servers.</span>
+        <span class="nc">TcpDiscoveryMulticastIpFinder</span> <span class="n">ipFinder</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">TcpDiscoveryMulticastIpFinder</span><span class="o">();</span>
+        <span class="n">ipFinder</span><span class="o">.</span><span class="na">setAddresses</span><span class="o">(</span><span class="nc">Collections</span><span class="o">.</span><span class="na">singletonList</span><span class="o">(</span><span class="s">"127.0.0.1:47500..47509"</span><span class="o">));</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setDiscoverySpi</span><span class="o">(</span><span class="k">new</span> <span class="nc">TcpDiscoverySpi</span><span class="o">().</span><span class="na">setIpFinder</span><span class="o">(</span><span class="n">ipFinder</span><span class="o">));</span>
+
+        <span class="c1">// Starting the node</span>
+        <span class="nc">Ignite</span> <span class="n">ignite</span> <span class="o">=</span> <span class="nc">Ignition</span><span class="o">.</span><span class="na">start</span><span class="o">(</span><span class="n">cfg</span><span class="o">);</span>
+
+        <span class="c1">// Create an IgniteCache and put some values in it.</span>
+        <span class="nc">IgniteCache</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">ignite</span><span class="o">.</span><span class="na">getOrCreateCache</span><span class="o">(</span><span class="s">"myCache"</span><span class="o">);</span>
+        <span class="n">cache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="s">"Hello"</span><span class="o">);</span>
+        <span class="n">cache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="s">"World!"</span><span class="o">);</span>
+
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; Created the cache and add the values."</span><span class="o">);</span>
+        
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; value 1 : "</span> <span class="o">+</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; value 2 : "</span> <span class="o">+</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+
+        <span class="c1">// Disconnect from the cluster.</span>
+        <span class="n">ignite</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>cache에서 키를 이용하여 get을 해주면 간단하게 클라이언트에서 데이터를 조회할 수 있다. 아래 콘솔을 확인하자.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img6.png" alt="" /></p>
+
+<p>서버가 작동되고 있는 한, 데이터가 유지되야하기 때문에 다음은 서버에 값을 저장하지 않고 바로 조회하는 코드를 작성하였다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">package</span> <span class="nn">main</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.Collections</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">org.apache.ignite.Ignite</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.IgniteCache</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.Ignition</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.configuration.IgniteConfiguration</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">IgniteTest</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+		<span class="c1">// Preparing IgniteConfiguration using Java APIs</span>
+        <span class="nc">IgniteConfiguration</span> <span class="n">cfg</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">IgniteConfiguration</span><span class="o">();</span>
+
+        <span class="c1">// The node will be started as a client node.</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setClientMode</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+
+        <span class="c1">// Classes of custom Java logic will be transferred over the wire from this app.</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setPeerClassLoadingEnabled</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+
+        <span class="c1">// Setting up an IP Finder to ensure the client can locate the servers.</span>
+        <span class="nc">TcpDiscoveryMulticastIpFinder</span> <span class="n">ipFinder</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">TcpDiscoveryMulticastIpFinder</span><span class="o">();</span>
+        <span class="n">ipFinder</span><span class="o">.</span><span class="na">setAddresses</span><span class="o">(</span><span class="nc">Collections</span><span class="o">.</span><span class="na">singletonList</span><span class="o">(</span><span class="s">"127.0.0.1:47500..47509"</span><span class="o">));</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="na">setDiscoverySpi</span><span class="o">(</span><span class="k">new</span> <span class="nc">TcpDiscoverySpi</span><span class="o">().</span><span class="na">setIpFinder</span><span class="o">(</span><span class="n">ipFinder</span><span class="o">));</span>
+
+        <span class="c1">// Starting the node</span>
+        <span class="nc">Ignite</span> <span class="n">ignite</span> <span class="o">=</span> <span class="nc">Ignition</span><span class="o">.</span><span class="na">start</span><span class="o">(</span><span class="n">cfg</span><span class="o">);</span>
+
+        <span class="c1">// Create an IgniteCache and put some values in it.</span>
+        <span class="nc">IgniteCache</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">ignite</span><span class="o">.</span><span class="na">getOrCreateCache</span><span class="o">(</span><span class="s">"myCache"</span><span class="o">);</span>
+
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; value 1 : "</span> <span class="o">+</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"&gt;&gt; value 2 : "</span> <span class="o">+</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+
+        <span class="c1">// Disconnect from the cluster.</span>
+        <span class="n">ignite</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>콘솔을 확인해서 이전에 저장했던 데이터가 잘 나오는지 확인한다.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img7.png" alt="" /></p>
+
+<p>메모리 DB로 사용되기 때문에, 서버가 기본설정 상 정지되면 기존의 값들이 사라질 것이다. 직접 확인해보기 위해 서버를 재시작한 뒤 데이터를 다시 조회해봤다.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img8.png" alt="" /></p>
+
+<p>기존 데이터가 삭제되고 null로 출력되는 모습을 확인할 수 있다.</p>
+
+<h1 id="데이터-영속성-설정">데이터 영속성 설정</h1>
+
+<p>ignite는 서버가 중지되더라도 데이터가 소멸되지 않는 데이터 영속성 설정을 할 수 있다. 컴퓨터의 저장장치와 연계하여 데이터가 유지되는 것으로 보인다. 일단 기본적인 기능들을 먼저 사용해보기 위해 이론적인 내용보다 코드를 먼저 작성했기때문에 정확한 동작 매커니즘은 아직 파악하지 못하였다.</p>
+
+<p>데이터 영속성을 설정하는 방법은 사이트의 가이드에 여러가지 방법이 소개되어 있는데, 본 포스트에서는 xml 파일을 수정하는 방법으로 진행하였다. 본 포스트 상단에 ignite 서버를 실행할 때 입력한 명령어를 보면 bat(또는 sh) 파일 뒤에 <strong>..\examples\config\example-ignite.xml</strong> 라고 입력한 부분이 있었는데, 이 xml 파일이 설정파일이다. 해당 폴더(examples\config)에 가보면 여러가지 설정들이 있는데, example-ignite.xml 파일을 그대로 수정하려고 한다.</p>
+
+<p>example-ignite.xml 파일을 보면 example-default.xml 파일을 import 하고 있기 때문에 실제 수정은 <strong>example-default.xml</strong> 파일을 수정하였다.</p>
+
+<p>example-default.xml 파일 안에 IgniteConfiguration bean(bean id가 ignite.cfg로 되어 있음) 내부에 아래 프로퍼티를 추가해준다.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">"dataStorageConfiguration"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;bean</span> <span class="na">class=</span><span class="s">"org.apache.ignite.configuration.DataStorageConfiguration"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">"defaultDataRegionConfiguration"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;bean</span> <span class="na">class=</span><span class="s">"org.apache.ignite.configuration.DataRegionConfiguration"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">"persistenceEnabled"</span> <span class="na">value=</span><span class="s">"true"</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/bean&gt;</span>
+        <span class="nt">&lt;/property&gt;</span>
+    <span class="nt">&lt;/bean&gt;</span>
+<span class="nt">&lt;/property&gt;</span>
+</code></pre></div></div>
+
+<p>persistenceEnabled 속성을 true로 설정해주면 데이터 영속성이 활성화된다. xml 파일을 수정하고 다시 ignite 서버를 실행시킨다. (본 포스트 상단 실행 명령어와 동일) 하지만 데이터 영속성을 활성화 한 뒤 클라이언트에서 조회 시도 시 아래와 같은 exception이 나타난다.</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">Exception in thread "main" class org.apache.ignite.IgniteException: Can not perform the operation because the cluster is inactive. Note, that the cluster is considered inactive by default if Ignite Persistent Store is used to let all the nodes join the cluster. To activate the cluster call Ignite.active(true).
+</span></code></pre></div></div>
+
+<p>데이터 영속성을 사용하려면 cluster 모드가 활성화되어야 하기 때문이다. cluster 모드를 활성화해주기 위해 또다른 cmd 창을 하나 더 실행시킨다.</p>
+
+<blockquote>
+  <p>ignite 서버가 실행되고 있는 상태에서 cluster 모드의 상태가 변경되기 때문에 서버를 실행중인 cmd는 그대로 두고 새로운 cmd에서 진행해야 한다.</p>
+</blockquote>
+
+<p>ignite.bat(또는 sh) 파일이 있는 폴더(bin 폴더)에 보면 control.bat(또는 sh) 파일이 있는데, 이 파일을 이용하면 cluster 모드를 활성화할 수 있다. 해당 폴더에서 아래 명령어를 입력해준다.</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">control.bat --set-state ACTIVE
+</span></code></pre></div></div>
+
+<p>아래와 같이 나오면 cluster 모드 활성화에 성공한 것이다.</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img9.png" alt="" /></p>
+
+<p>이제 영속성이 잘 동작하는지 확인하기 위해 클라이언트에서 값을 저장한 후 서버를 재시작하였다. 그 뒤 다시 클라이언트에서 데이터를 조회해보았다. (위 클라이언트 코드와 다를 것이 없으므로 코드는 생략)</p>
+
+<p><img src="\assets\built\images\apache-ignite\apache-ignite-overview\img10.png" alt="" /></p>
+
+<p>ignite 서버를 재시작했음에도 데이터가 유지되는 모습을 확인할 수 있었다.</p>
+
+<p>여기까지 정말 기본적인 ignite 사용법을 살펴보았다.</p>]]></content><author><name>sian</name></author><category term="apache-ignite" /><category term="apache-ignite" /><category term="ignite" /><summary type="html"><![CDATA[아파치 재단에서 Apache Ignite라는 분산형 데이터베이스 서비스를 출시했다. 메모리와 저장장치 간 데이터를 분산하여 속도, 안정성 모두 고려하여 개발된 데이터베이스로 보인다. 사이트에 접속해보면 여러가지 기술들이 나열되어 있는데 이론적인 이야기는 일단 제쳐두고 간단하게 메모리 DB로 사용해 본 내용을 본 포스트에 기재한다.]]></summary></entry><entry><title type="html">Maven과 Gradle 차이</title><link href="http://localhost:4000/mavengradle" rel="alternate" type="text/html" title="Maven과 Gradle 차이" /><published>2021-09-09T16:00:00+09:00</published><updated>2021-09-09T16:00:00+09:00</updated><id>http://localhost:4000/mavengradle</id><content type="html" xml:base="http://localhost:4000/mavengradle"><![CDATA[<h1 id="빌드-도구란">빌드 도구란?</h1>
+
+<ul>
+  <li>빌드 도구는 빌드 자동화를 시켜주는 실행가능한 프로그램만들어 주는 프로그램 ex) maven, gradle, ant</li>
+</ul>
+
+<h2 id="빌드-자동화란">빌드 자동화란?</h2>
+<ul>
+  <li>
+    <p>빌드 자동화의 본질적 목적은 소프트웨어 개발자가 반복해서 하는 코딩을 잘 짜여진 프로세스를 통해 자동으로 실행하여, 
+믿을 수 있는 결과물도 생산해 낼 수 있는 일련의 작업방식 및 방법을 말한다.</p>
+  </li>
+  <li>
+    <p>지속적인 통합(continuous Integration)과도 일맥상통되는 의미다. 
+수없이 반복해서 최종 결과물을 만들어내야 하는 소프트웨어 개발업무에서 빠질 수 없는 개념적 이해가 되었다. 
+특히 오늘날의 복잡하고 광범위한 협업적 개발 과정에서는 과정과정에서 있을 수 있는 인간적 실수의 가능성을 최소한으로 줄여야 한다.</p>
+  </li>
+</ul>
+
+<p>출처 : Wikipedia</p>
+
+<h2 id="maven-이란">Maven 이란?</h2>
+<ul>
+  <li>Project object model (POM)개념의 기반으로 만들어져있으며 빌드 중인 프로젝트, 빌드 순서, 
+다양한 외부 라이브러리의 종속성 관계들을 pom.xml파일에 명시한다.</li>
+  <li>외부저장소에서 필요한 라이브러리와 플러그인들을 다운로드 한 다음, 로컬시스템의 캐시에 모두 저장한다.</li>
+</ul>
+
+<h3 id="project-object-model-pom">Project Object Model (POM)</h3>
+<p>Project Object Model는 이름 그대로 Project Object Model의 정보를 담고있는 파일이다. <br />
+이 파일에서 주요하게 다루는 기능들은 다음과 같다.</p>
+<ul>
+  <li>프로젝트 정보 : 프로젝트의 이름, 개발자 목록, 라이센스 등</li>
+  <li>빌드 설정 : 소스, 리소스, 라이프 사이클별 실행한 플러그인(goal)등 빌드와 관련된 설정</li>
+  <li>빌드 환경 : 사용자 환경 별로 달라질 수 있는 프로파일 정보</li>
+  <li>POM연관 정보 : 의존 프로젝트(모듈), 상위 프로젝트, 포함하고 있는 하위 모듈 등</li>
+</ul>
+
+<h2 id="gradle-이란">Gradle 이란?</h2>
+<ul>
+  <li>Maven과 Ant에서 볼수 있는 개념들을 사용하는 대안으로써 나온 프로젝트 빌드 관리 툴이다.</li>
+  <li>Ant처럼 유연한 범용 빌드 도구</li>
+  <li>Maven을 사용할 수 있는 변환 가능 컨벤션 프레임 워크</li>
+  <li>Groovy 언어를 사용한 Domain-specific-language를 사용한다. 
+(설정파일을 xml파일을 사용하는 Maven보다 코드가 훨씬 간결하다.)</li>
+  <li>2007년에 처음 개발되었고, 2013년에 구글에 의해 안드로이드 프로젝트의 빌드 시스템으로 채택되었다.</li>
+</ul>
+
+<h2 id="maven-gradle-차이">Maven Gradle 차이</h2>
+<ol>
+  <li>Maven은 고정적이고 선형적인 단계의 모델을 기반<br />
+Gradle은 작업 의존성 그래프를 기반</li>
+  <li>Maven, Gradle 둘 다 다중 모듈 빌드를 병렬로 실행할 수 있지만<br />
+Gradle은 어떤 task가 업데이트 되었고 안되었는지를 체크하기 때문에 incremental build를 허용한다.<br />
+이미 업데이트된 task에 대해서는 작업이 실행 되지 않으므로 빌드 시간이 훨씬 단축된다.</li>
+  <li>Maven은 멀티 프로젝트에서 특정 설정을 다른 모듈에서 사용하려면 상속을 받아야하지<br />
+Gradle은 설정 주입 방식을 제공한다.</li>
+  <li>Gradle은 concurrent에 안전한 캐시를 허용한다.<br />
+2개 이상의 프로젝트에서 동일한 캐시를 사용할 경우,   <br />
+서로 overwrite되지 않도록 checksum기반의 캐시를 사용하고 캐시를 repository와 동기화시킬 수 있다.</li>
+</ol>
+
+<h2 id="maven-코드-예제">Maven 코드 예제</h2>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">xmlns=</span><span class="s">"http://maven.apache.org/POM/4.0.0"</span> <span class="na">xmlns:xsi=</span><span class="s">"http://www.w3.org/2001/XMLSchema-instance"</span>
+<span class="na">xsi:schemaLocation=</span><span class="s">"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;modelVersion&gt;</span>4.0.0<span class="nt">&lt;/modelVersion&gt;</span>
+
+    <span class="nt">&lt;groupId&gt;</span>com.example<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>demo-maven<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>0.0.1-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;packaging&gt;</span>jar<span class="nt">&lt;/packaging&gt;</span>
+
+    <span class="nt">&lt;name&gt;</span>demo-maven<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;description&gt;</span>Demo project for Spring Boot<span class="nt">&lt;/description&gt;</span>
+
+    <span class="nt">&lt;parent&gt;</span>
+        <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+        <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter-parent<span class="nt">&lt;/artifactId&gt;</span>
+        <span class="nt">&lt;version&gt;</span>1.5.4.RELEASE<span class="nt">&lt;/version&gt;</span>
+        <span class="nt">&lt;relativePath/&gt;</span> <span class="c">&lt;!-- lookup parent from repository --&gt;</span>
+    <span class="nt">&lt;/parent&gt;</span>
+
+    <span class="nt">&lt;properties&gt;</span>
+        <span class="nt">&lt;project.build.sourceEncoding&gt;</span>UTF-8<span class="nt">&lt;/project.build.sourceEncoding&gt;</span>
+        <span class="nt">&lt;project.reporting.outputEncoding&gt;</span>UTF-8<span class="nt">&lt;/project.reporting.outputEncoding&gt;</span>
+        <span class="nt">&lt;java.version&gt;</span>1.8<span class="nt">&lt;/java.version&gt;</span>
+    <span class="nt">&lt;/properties&gt;</span>
+    
+    <span class="nt">&lt;dependencies&gt;</span>
+        <span class="nt">&lt;dependency&gt;</span>
+            <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+            <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter<span class="nt">&lt;/artifactId&gt;</span>
+        <span class="nt">&lt;/dependency&gt;</span>
+    
+        <span class="nt">&lt;dependency&gt;</span>
+            <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+            <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter-test<span class="nt">&lt;/artifactId&gt;</span>
+            <span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
+        <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;/dependencies&gt;</span>
+
+    <span class="nt">&lt;build&gt;</span>
+        <span class="nt">&lt;plugins&gt;</span>
+            <span class="nt">&lt;plugin&gt;</span>
+                <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+                <span class="nt">&lt;artifactId&gt;</span>spring-boot-maven-plugin<span class="nt">&lt;/artifactId&gt;</span>
+            <span class="nt">&lt;/plugin&gt;</span>
+        <span class="nt">&lt;/plugins&gt;</span>
+    <span class="nt">&lt;/build&gt;</span>
+<span class="nt">&lt;/project&gt;</span>
+</code></pre></div></div>
+
+<h2 id="gradle-코드-예제">Gradle 코드 예제</h2>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">buildscript</span> <span class="p">{</span>
+    <span class="nx">ext</span> <span class="p">{</span>
+        <span class="nx">springBootVersion</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">1.5.4.RELEASE</span><span class="dl">'</span>
+    <span class="p">}</span>
+    
+    <span class="nx">repositories</span> <span class="p">{</span>
+        <span class="nx">m</span>  <span class="nx">avenCentral</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="nx">dependencies</span> <span class="p">{</span>
+        <span class="nx">classpath</span><span class="p">(</span><span class="dl">"</span><span class="s2">org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}</span><span class="dl">"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nx">apply</span> <span class="nx">plugin</span><span class="p">:</span> <span class="dl">'</span><span class="s1">java</span><span class="dl">'</span>
+<span class="nx">apply</span> <span class="nx">plugin</span><span class="p">:</span> <span class="dl">'</span><span class="s1">idea</span><span class="dl">'</span>
+<span class="nx">apply</span> <span class="nx">plugin</span><span class="p">:</span> <span class="dl">'</span><span class="s1">org.springframework.boot</span><span class="dl">'</span>
+
+<span class="nx">version</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">0.0.1-SNAPSHOT</span><span class="dl">'</span>
+<span class="nx">sourceCompatibility</span> <span class="o">=</span> <span class="mf">1.8</span>
+
+<span class="nx">repositories</span> <span class="p">{</span>
+    <span class="nx">mavenCentral</span><span class="p">()</span>
+<span class="p">}</span>
+
+
+<span class="nx">dependencies</span> <span class="p">{</span>
+    <span class="nx">compile</span><span class="p">(</span><span class="dl">'</span><span class="s1">org.springframework.boot:spring-boot-starter</span><span class="dl">'</span><span class="p">)</span>
+    <span class="nx">testCompile</span><span class="p">(</span><span class="dl">'</span><span class="s1">org.springframework.boot:spring-boot-starter-test</span><span class="dl">'</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>]]></content><author><name>sian</name></author><category term="build" /><category term="maven" /><category term="gradle" /><summary type="html"><![CDATA[빌드 도구란?]]></summary></entry></feed>
